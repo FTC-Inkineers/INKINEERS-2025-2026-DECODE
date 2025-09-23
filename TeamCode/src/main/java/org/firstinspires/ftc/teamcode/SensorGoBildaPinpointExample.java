@@ -177,7 +177,6 @@ public class SensorGoBildaPinpointExample extends LinearOpMode {
             String velocity = String.format(Locale.US,"{XVel: %.3f, YVel: %.3f, HVel: %.3f}", odo.getVelX(DistanceUnit.MM), odo.getVelY(DistanceUnit.MM), odo.getHeadingVelocity(UnnormalizedAngleUnit.DEGREES));
             telemetry.addData("Velocity", velocity);
 
-
             /*
             Gets the Pinpoint device status. Pinpoint can reflect a few states. But we'll primarily see
             READY: the device is working as normal
