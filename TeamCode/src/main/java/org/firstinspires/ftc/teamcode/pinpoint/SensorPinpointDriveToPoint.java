@@ -75,8 +75,8 @@ public class SensorPinpointDriveToPoint extends LinearOpMode {
         stateMachine = StateMachine.WAITING_FOR_START;
 
         telemetry.addData("Status", "Initialized");
-        telemetry.addData("X offset", odo.getXOffset());
-        telemetry.addData("Y offset", odo.getYOffset());
+        telemetry.addData("X offset", odo.getXOffset(DistanceUnit.INCH));
+        telemetry.addData("Y offset", odo.getYOffset(DistanceUnit.INCH));
         telemetry.addData("Device Version Number:", odo.getDeviceVersion());
         telemetry.addData("Device Scalar", odo.getYawScalar());
         telemetry.update();
