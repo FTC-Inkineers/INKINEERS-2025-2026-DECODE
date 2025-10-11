@@ -11,7 +11,6 @@ Main Project forked from PP Quickstart:
 
 Added Libraries:
 - Pedro Pathing
-- FTCLib (for Gamepad Support)
 
 Drivers:
 - goBILDA pinpoint odometry computer
