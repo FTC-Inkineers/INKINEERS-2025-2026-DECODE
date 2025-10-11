@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.subsystem;
 
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -11,7 +12,7 @@ public class ShooterSubsystem {
     private final Servo triggerServo;
     private final CRServo hoodServo;
 
-    private ElapsedTime triggerTimer = new ElapsedTime();
+    private final ElapsedTime triggerTimer = new ElapsedTime();
     private String shooterMessage;
 
     public ShooterSubsystem(HardwareMap hardwareMap) {
@@ -22,16 +23,23 @@ public class ShooterSubsystem {
         triggerTimer.reset();
     }
 
-    public void update() {
+    public void runTeleOp(Gamepad gamepad) {
+
+        // Control Logic
+        if (gamepad.rightBumperWasPressed()) {
+            fire();
+        }
+        if (gamepad.right_trigger > 0) {
+            spinUp();
+        } else if (getShooterPower() >= 1.0) {
+            spinRelease();
+        }
+
         if (triggerTimer.seconds() <= 0.4) {
             pullTrigger();
         } else {
             releaseTrigger();
             shooterMessage = "idle";
-        }
-
-        if (triggerTimer.seconds() > 0.6) {
-
         }
     }
 
