@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.opmode.teleop;
 
-import com.arcrobotics.ftclib.gamepad.GamepadEx;
-import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -14,7 +12,6 @@ public class ShooterTester extends OpMode {
     // Subsystems
     private ShooterSubsystem shooterSubsystem;
 
-    private GamepadEx gamepadEx1;
     private ElapsedTime loopTimer;
 
     @Override
@@ -22,7 +19,6 @@ public class ShooterTester extends OpMode {
         // Subsystem Init
         shooterSubsystem = new ShooterSubsystem(hardwareMap);
         // Gamepad Init
-        gamepadEx1 = new GamepadEx(gamepad1);
         loopTimer = new ElapsedTime();
     }
 
@@ -39,10 +35,10 @@ public class ShooterTester extends OpMode {
         loopTimer.reset();
 
         // Control Logic
-        if (gamepadEx1.wasJustReleased(GamepadKeys.Button.RIGHT_BUMPER)) {
+        if (gamepad1.rightBumperWasPressed()) {
             shooterSubsystem.fire();
         }
-        if (gamepadEx1.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0) {
+        if (gamepad1.right_trigger > 0) {
             shooterSubsystem.spinUp();
         } else if (shooterSubsystem.getShooterPower() >= 1.0) {
             shooterSubsystem.spinRelease();
@@ -50,9 +46,6 @@ public class ShooterTester extends OpMode {
 
 
         shooterSubsystem.update();
-
-        // Read Buttons
-        gamepadEx1.readButtons();
 
         // Telemetry
         telemetry.addData("Shooter Message", shooterSubsystem.shooterMessage());
