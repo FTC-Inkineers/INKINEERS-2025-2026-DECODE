@@ -13,17 +13,22 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import org.openftc.apriltag.AprilTagPose;
 
 import java.util.function.Supplier;
 
 public class DriveSubsystem {
+    // Tunable proportional gains for AprilTag alignment
+    private static final double kDrive = 0.02;     // Forward/backward
+    private static final double kStrafe = 0.02;    // Left/right
+    private static final double kTurn = 0.02;      // Rotation
     
     // PEDRO PATHING
     private Follower follower;
     public static Pose startingPose;
     private boolean automatedDrive;
     private Supplier<PathChain> pathChain;
-    private TelemetryManager telemetryM;
+    private final TelemetryManager telemetryM;
 
 
     // TELEOP
@@ -74,15 +79,13 @@ public class DriveSubsystem {
         double leftXInput = strafeRamper.rampInput(gamepad1.left_stick_x);
         double rightXInput = turnRamper.rampInput(gamepad1.right_stick_x);
 
-        if (!automatedDrive) {
-            // Last parameter --- True: Robot Centric | False: Field Centric
-            follower.setTeleOpDrive(
-                    -leftYInput, // Forward
-                    -leftXInput, // Strafe
-                    -rightXInput, // Turn
-                    false // Field Centric
-            );
-        }
+        // Last parameter --- True: Robot Centric | False: Field Centric
+        follower.setTeleOpDrive(
+                -leftYInput, // Forward
+                -leftXInput, // Strafe
+                -rightXInput, // Turn
+                automatedDrive // Field Centric
+        );
 
         //Automated PathFollowing
         if (gamepad1.aWasPressed()) {
@@ -140,5 +143,50 @@ public class DriveSubsystem {
             // Return accelerated output
             return input * multiplier;
         }
+    }
+
+    public boolean alignToAprilTag(AprilTagPose tagPose, double targetDistance) {
+        // Error terms. Pitch, roll, and yaw, respectively.
+        double xError = tagPose.x - targetDistance;     // Positive = too far
+        double yError = tagPose.y;                      // Positive = robot is left of tag
+        double yawError = tagPose.z;                    // Positive = rotated CCW
+
+        // Calculate movement commands
+        double drive = xError * kDrive;
+        double strafe = yError * kStrafe;
+        double turn = yawError * kTurn;
+
+        // Clamp speeds at 0.4 max/min
+        drive = Math.max(-0.4, Math.min(0.4, drive));
+        strafe = Math.max(-0.4, Math.min(0.4, strafe));
+        turn = Math.max(-0.4, Math.min(0.4, turn));
+
+        // Apply movement through Pedro follower
+        follower.setTeleOpDrive(-drive, -strafe, -turn, true);
+
+        telemetryM.debug("AlignToAprilTag", "xErr: %.2f, yErr: %.2f, yawErr: %.2f", xError, yError, yawError);
+        telemetryM.debug("DriveCmds", "f: %.2f, s: %.2f, t: %.2f", drive, strafe, turn);
+
+        // Determine if alignment is done
+        boolean aligned = Math.abs(xError) < 1.0 && Math.abs(yError) < 1.0 && Math.abs(yawError) < 2.0;
+
+        if (aligned) {
+            follower.setTeleOpDrive(0, 0, 0, true);
+        }
+
+        return aligned;
+    }
+
+    /**
+     * Align to a given AprilTagPose object.
+     * This can be called from a VisionSubsystem that provides tag data.
+     */
+    public boolean alignToAprilTag(AprilTagPose tagPose) {
+        if (tagPose == null) {
+            follower.setTeleOpDrive(0, 0, 0, true);
+            telemetryM.debug("AlignToAprilTag", "No tag detected");
+            return false;
+        }
+        return alignToAprilTag(tagPose, 10.0); // Default target distance = 10 inches
     }
 }
