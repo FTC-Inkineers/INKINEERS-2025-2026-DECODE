@@ -8,13 +8,16 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.HeadingInterpolator;
 import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-import org.openftc.apriltag.AprilTagPose;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 public class DriveSubsystem {
@@ -24,7 +27,7 @@ public class DriveSubsystem {
     private static final double kTurn = 0.02;      // Rotation
     
     // PEDRO PATHING
-    private Follower follower;
+    private final Follower follower;
     public static Pose startingPose;
     private boolean automatedDrive;
     private Supplier<PathChain> pathChain;
@@ -34,6 +37,7 @@ public class DriveSubsystem {
     // TELEOP
     private Gamepad gamepad1;
     private Gamepad gamepad2;
+    ComputerVision CV;
 
     InputRamper forwardRamper, strafeRamper, turnRamper;
 
@@ -43,6 +47,7 @@ public class DriveSubsystem {
         follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 
+        CV = new ComputerVision(hardwareMap);
     }
 
     public void initTeleOp(Gamepad gamepad1, Gamepad gamepad2) {
@@ -91,6 +96,11 @@ public class DriveSubsystem {
         if (gamepad1.aWasPressed()) {
             follower.followPath(pathChain.get());
             automatedDrive = true;
+        }
+
+        // Hold Y to align
+        if (gamepad1.y) {
+            automatedDrive = alignToAprilTag(CV.getLLResult());
         }
 
         //Stop automated following if the follower is done
@@ -145,16 +155,14 @@ public class DriveSubsystem {
         }
     }
 
-    public boolean alignToAprilTag(AprilTagPose tagPose, double targetDistance) {
-        // Error terms. Pitch, roll, and yaw, respectively.
-        double xError = tagPose.x - targetDistance;     // Positive = too far
-        double yError = tagPose.y;                      // Positive = robot is left of tag
-        double yawError = tagPose.z;                    // Positive = rotated CCW
+    public boolean alignToPose(double x, double y, double z, double targetDistance) {
+
+        double xError = x - targetDistance;     // Positive = too far
 
         // Calculate movement commands
         double drive = xError * kDrive;
-        double strafe = yError * kStrafe;
-        double turn = yawError * kTurn;
+        double strafe = y * kStrafe;
+        double turn = z * kTurn;
 
         // Clamp speeds at 0.4 max/min
         drive = Math.max(-0.4, Math.min(0.4, drive));
@@ -164,11 +172,11 @@ public class DriveSubsystem {
         // Apply movement through Pedro follower
         follower.setTeleOpDrive(-drive, -strafe, -turn, true);
 
-        telemetryM.debug("AlignToAprilTag", "xErr: %.2f, yErr: %.2f, yawErr: %.2f", xError, yError, yawError);
+        telemetryM.debug("AlignToAprilTag", "xErr: %.2f, yErr: %.2f, yawErr: %.2f", xError, y, z);
         telemetryM.debug("DriveCmds", "f: %.2f, s: %.2f, t: %.2f", drive, strafe, turn);
 
         // Determine if alignment is done
-        boolean aligned = Math.abs(xError) < 1.0 && Math.abs(yError) < 1.0 && Math.abs(yawError) < 2.0;
+        boolean aligned = Math.abs(xError) < 1.0 && Math.abs(y) < 1.0 && Math.abs(z) < 2.0;
 
         if (aligned) {
             follower.setTeleOpDrive(0, 0, 0, true);
@@ -181,12 +189,31 @@ public class DriveSubsystem {
      * Align to a given AprilTagPose object.
      * This can be called from a VisionSubsystem that provides tag data.
      */
-    public boolean alignToAprilTag(AprilTagPose tagPose) {
-        if (tagPose == null) {
+    public boolean alignToAprilTag(LLResult result) {
+        List<LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
+        LLResultTypes.FiducialResult tagPose = null; // Initialize to null
+
+        if (fiducials.isEmpty()) {
             follower.setTeleOpDrive(0, 0, 0, true);
-            telemetryM.debug("AlignToAprilTag", "No tag detected");
+            telemetryM.debug("AlignToAprilTag", "No tags detected");
+            return false; // No tags to align to
+        }
+
+        // Find the largest AprilTag in the list
+        for (LLResultTypes.FiducialResult fiducial : fiducials) {
+            if (tagPose == null || fiducial.getTargetArea() > tagPose.getTargetArea()) {
+                tagPose = fiducial;
+            }
+        }
+
+        // It's good practice to ensure aprilTag is not null before using it,
+        // though the initial check for an empty list should prevent this.
+        if (tagPose == null) {
             return false;
         }
-        return alignToAprilTag(tagPose, 10.0); // Default target distance = 10 inches
+
+        // Error terms. Pitch, roll, and yaw, respectively.
+        Pose3D error3d = tagPose.getCameraPoseTargetSpace();
+        return alignToPose(error3d.getPosition().x, error3d.getPosition().y, error3d.getPosition().z, 10.0); // Default target distance = 10 inches
     }
 }
