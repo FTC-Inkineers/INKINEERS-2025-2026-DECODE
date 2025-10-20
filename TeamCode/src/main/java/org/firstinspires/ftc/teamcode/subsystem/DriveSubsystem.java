@@ -35,8 +35,7 @@ public class DriveSubsystem {
 
 
     // TELEOP
-    private Gamepad gamepad1;
-    private Gamepad gamepad2;
+    private Gamepad gamepad;
     ComputerVision CV;
 
     InputRamper forwardRamper, strafeRamper, turnRamper;
@@ -50,14 +49,13 @@ public class DriveSubsystem {
         CV = new ComputerVision(hardwareMap);
     }
 
-    public void initTeleOp(Gamepad gamepad1, Gamepad gamepad2) {
+    public void initTeleOp(Gamepad gamepad1) {
         pathChain = () -> follower.pathBuilder() //Lazy Curve Generation
                 .addPath(new Path(new BezierLine(follower::getPose, new Pose(45, 98))))
                 .setHeadingInterpolation(HeadingInterpolator.linearFromPoint(follower::getHeading, Math.toRadians(45), 0.8))
                 .build();
 
-        this.gamepad1 = gamepad1;
-        this.gamepad2 = gamepad2;
+        this.gamepad = gamepad1;
 
         forwardRamper = new InputRamper();
         strafeRamper = new InputRamper();
@@ -80,9 +78,9 @@ public class DriveSubsystem {
         follower.update();
         telemetryM.update();
 
-        double leftYInput = forwardRamper.rampInput(gamepad1.left_stick_y);
-        double leftXInput = strafeRamper.rampInput(gamepad1.left_stick_x);
-        double rightXInput = turnRamper.rampInput(gamepad1.right_stick_x);
+        double leftYInput = forwardRamper.rampInput(gamepad.left_stick_y);
+        double leftXInput = strafeRamper.rampInput(gamepad.left_stick_x);
+        double rightXInput = turnRamper.rampInput(gamepad.right_stick_x);
 
         // Last parameter --- True: Robot Centric | False: Field Centric
         follower.setTeleOpDrive(
@@ -93,18 +91,18 @@ public class DriveSubsystem {
         );
 
         //Automated PathFollowing
-        if (gamepad1.aWasPressed()) {
+        if (gamepad.aWasPressed()) {
             follower.followPath(pathChain.get());
             automatedDrive = true;
         }
 
         // Hold Y to align
-        if (gamepad1.y) {
+        if (gamepad.y) {
             automatedDrive = alignToAprilTag(CV.getLLResult());
         }
 
         //Stop automated following if the follower is done
-        if (automatedDrive && (gamepad1.bWasPressed() || !follower.isBusy())) {
+        if (automatedDrive && (gamepad.bWasPressed() || !follower.isBusy())) {
             follower.startTeleopDrive();
             automatedDrive = false;
         }

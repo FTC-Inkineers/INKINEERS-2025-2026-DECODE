@@ -26,10 +26,10 @@ public class ShooterSubsystem {
     public void runTeleOp(Gamepad gamepad) {
 
         // Control Logic
-        if (gamepad.rightBumperWasPressed()) {
+        if (gamepad.aWasPressed()) {
             fire();
         }
-        if (gamepad.right_trigger > 0) {
+        if (gamepad.right_bumper) {
             spinUp();
         } else if (getShooterPower() >= 1.0) {
             spinRelease();

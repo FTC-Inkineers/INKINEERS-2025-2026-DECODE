@@ -18,15 +18,7 @@ public class ShooterTester extends OpMode {
     public void init() {
         // Subsystem Init
         shooterSubsystem = new ShooterSubsystem(hardwareMap);
-        // Gamepad Init
         loopTimer = new ElapsedTime();
-    }
-
-    @Override
-    public void init_loop() {
-    }
-
-    public void start() {
     }
 
     @Override
