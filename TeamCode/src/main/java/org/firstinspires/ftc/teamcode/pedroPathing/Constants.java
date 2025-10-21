@@ -23,14 +23,25 @@ public class Constants {
 
     public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
 
-    public static MecanumConstants driveConstants = new MecanumConstants()
+    public static MecanumConstants blueDriveConstants = new MecanumConstants()
             .maxPower(1)
-            // Motors
             .leftRearMotorName("leftRear")
             .leftFrontMotorName("leftFront")
             .rightFrontMotorName("rightFront")
             .rightRearMotorName("rightRear")
-            // Motor Directions
+            // Directions for BLUE ALLIANCE
+            .leftFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
+            .leftRearMotorDirection(DcMotorSimple.Direction.FORWARD)
+            .rightFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
+            .rightRearMotorDirection(DcMotorSimple.Direction.REVERSE);
+
+    public static MecanumConstants redDriveConstants = new MecanumConstants()
+            .maxPower(1)
+            .leftRearMotorName("leftRear")
+            .leftFrontMotorName("leftFront")
+            .rightFrontMotorName("rightFront")
+            .rightRearMotorName("rightRear")
+            // Directions for RED ALLIANCE
             .leftFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
             .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
             .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
@@ -48,9 +59,13 @@ public class Constants {
             .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD);
 
     public static Follower createFollower(HardwareMap hardwareMap) {
+        return createFollower(hardwareMap, true);
+    }
+
+    public static Follower createFollower(HardwareMap hardwareMap, boolean isBlueSide) {
         return new FollowerBuilder(followerConstants, hardwareMap)
                 .pathConstraints(pathConstraints)
-                .mecanumDrivetrain(driveConstants)
+                .mecanumDrivetrain(isBlueSide? blueDriveConstants : redDriveConstants)
                 .pinpointLocalizer(localizerConstants)
                 .build();
     }

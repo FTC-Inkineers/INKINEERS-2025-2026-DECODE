@@ -14,3 +14,8 @@ Added Libraries:
 
 Drivers:
 - goBILDA pinpoint odometry computer
+
+Code Structure:
+- The game field configuration relative to the robot operators is dependent on alliance color. 
+- We will take BLUE ALLIANCE as our default side.
+- Code dependent on alliance color take TRUE for BLUE alliance and FALSE for RED alliance. 

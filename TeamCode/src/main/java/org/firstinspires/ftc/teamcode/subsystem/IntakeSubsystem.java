@@ -12,14 +12,18 @@ public class IntakeSubsystem {
 
     IntakeState intakeState;
 
-    private final DcMotor leftIntakeMotor;
-    private final DcMotor rightIntakeMotor;
+    private final boolean blueSide;
 
-    public IntakeSubsystem(HardwareMap hardwareMap) {
-        leftIntakeMotor = hardwareMap.get(DcMotor.class, "leftIntake");
-        rightIntakeMotor = hardwareMap.get(DcMotor.class, "rightIntake");
+    private final DcMotor frontIntake;
+    private final DcMotor backIntake;
 
-        rightIntakeMotor.setDirection(DcMotor.Direction.REVERSE);
+    public IntakeSubsystem(HardwareMap hardwareMap, boolean isBlueSide) {
+        blueSide = isBlueSide;
+
+        frontIntake = hardwareMap.get(DcMotor.class, isBlueSide ? "rightIntake" : "leftIntake");
+        backIntake = hardwareMap.get(DcMotor.class, isBlueSide ? "leftIntake" : "rightIntake");
+
+        backIntake.setDirection(DcMotor.Direction.REVERSE);
 
         intakeState = IntakeState.DUAL_IDLE;
     }
@@ -29,15 +33,15 @@ public class IntakeSubsystem {
         // Control Logic
         // RIGHT
         if (gamepad.right_trigger > 0) {
-            rightIntakeMotor.setPower(1);
+            backIntake.setPower(1);
         } else {
-            rightIntakeMotor.setPower(0);
+            backIntake.setPower(0);
         }
         // LEFT
         if (gamepad.left_trigger > 0) {
-            leftIntakeMotor.setPower(1);
+            frontIntake.setPower(1);
         } else {
-            leftIntakeMotor.setPower(0);
+            frontIntake.setPower(0);
         }
         // Adjust Power
         if (gamepad.rightBumperWasPressed()) {
@@ -48,7 +52,7 @@ public class IntakeSubsystem {
     }
 
     public void spinLeftIntake() {
-        leftIntakeMotor.setPower(1.0);
+        frontIntake.setPower(1.0);
     }
 
 

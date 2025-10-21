@@ -8,20 +8,21 @@ import org.firstinspires.ftc.teamcode.subsystem.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystem.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.subsystem.ShooterSubsystem;
 
-@TeleOp(name = "Aquamarine Drive", group = "TeleOp")
-public class AquamarineDrive extends OpMode {
+@TeleOp(name = "Aquamarine Drive BLUE", group = "TeleOp")
+public class AquamarineDriveBlue extends OpMode {
     DriveSubsystem drive;
     ShooterSubsystem shooter;
     IntakeSubsystem intake;
 
+    // TODO: Make abstract class
     private ElapsedTime loopTimer;
 
     @Override
     public void init() {
-        drive = new DriveSubsystem(hardwareMap);
+        drive = new DriveSubsystem(hardwareMap, true);
         drive.initTeleOp(gamepad1);
         shooter = new ShooterSubsystem(hardwareMap);
-        intake = new IntakeSubsystem(hardwareMap);
+        intake = new IntakeSubsystem(hardwareMap, true);
 
         loopTimer = new ElapsedTime();
     }
