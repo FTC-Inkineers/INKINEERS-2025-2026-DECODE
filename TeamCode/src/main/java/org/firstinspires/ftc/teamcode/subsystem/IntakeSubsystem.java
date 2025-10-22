@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystem;
 
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -28,7 +29,7 @@ public class IntakeSubsystem {
         intakeState = IntakeState.DUAL_IDLE;
     }
 
-    private double power = 1.0;
+    private double power = 0.6;
     public void runTeleOp(Gamepad gamepad) {
         // Control Logic
         // RIGHT
@@ -51,10 +52,14 @@ public class IntakeSubsystem {
         }
     }
 
+    public void enableAllTelemetry(OpMode opMode) {
+        opMode.telemetry.addLine("\\ INTAKE SUBSYSTEM //");
+        opMode.telemetry.addData("Intake Power", getIntakePower());
+    }
+
     public void spinLeftIntake() {
         frontIntake.setPower(1.0);
     }
-
 
     public double getIntakePower() {
         return power;

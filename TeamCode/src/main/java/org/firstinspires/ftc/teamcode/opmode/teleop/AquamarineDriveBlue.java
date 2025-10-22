@@ -41,10 +41,8 @@ public class AquamarineDriveBlue extends OpMode {
         intake.runTeleOp(gamepad1);
 
         // Telemetry
-        telemetry.addData("Shooter Message", shooter.shooterMessage());
-        telemetry.addData("Trigger Time", shooter.getTimerSeconds());
-        telemetry.addData("Intake Power", intake.getIntakePower());
-
+        shooter.enableAllTelemetry(this);
+        intake.enableAllTelemetry(this);
 
         telemetry.addData("Loop time (ms)", loopTimer.milliseconds());
         telemetry.update();
