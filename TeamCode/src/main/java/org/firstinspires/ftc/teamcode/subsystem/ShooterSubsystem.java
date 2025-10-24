@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -28,6 +29,7 @@ public class ShooterSubsystem {
         hoodServo = hardwareMap.get(CRServo.class, "hoodServo");
 
         shooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        shooterMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         triggerTimer.reset();
         shooterTimer.reset();
@@ -41,7 +43,7 @@ public class ShooterSubsystem {
     private double prevError;
     public double shooterPID() {
         double kP = 0.001;
-        double kD = 0.000;
+        double kD = 0.00001;
         currentRPM = shooterMotor.getVelocity() / SHOOTER_TICKS_PER_REV * 60;
         double curError = targetRPM - currentRPM;
 

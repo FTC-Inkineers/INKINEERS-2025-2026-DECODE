@@ -33,7 +33,7 @@ public class DriveSubsystem {
     private Supplier<PathChain> pathChain;
     private final TelemetryManager telemetryM;
 
-//    private final boolean blueSide;
+    private final boolean blueSide;
 
     // TELEOP
     private Gamepad gamepad;
@@ -42,7 +42,7 @@ public class DriveSubsystem {
     InputRamper forwardRamper, strafeRamper, turnRamper;
 
     public DriveSubsystem(HardwareMap hardwareMap, boolean isBlueSide) {
-//        blueSide = isBlueSide;
+        blueSide = isBlueSide;
 
         follower = Constants.createFollower(hardwareMap, isBlueSide);
         follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
@@ -89,7 +89,7 @@ public class DriveSubsystem {
         follower.setTeleOpDrive(
                 -leftYInput, // Forward
                 -leftXInput, // Strafe
-                -rightXInput, // Turn
+                -rightXInput * (blueSide ? -1 : 1), // Turn
                 automatedDrive // Field Centric
         );
 

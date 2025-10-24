@@ -8,8 +8,8 @@ import org.firstinspires.ftc.teamcode.subsystem.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystem.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.subsystem.ShooterSubsystem;
 
-@TeleOp(name = "Aquamarine Drive BLUE", group = "TeleOp")
-public class AquamarineDriveBlue extends OpMode {
+@TeleOp(name = "Aquamarine Drive RED", group = "TeleOp")
+public class AquamarineDriveRed extends OpMode {
     DriveSubsystem drive;
     ShooterSubsystem shooter;
     IntakeSubsystem intake;
@@ -19,10 +19,10 @@ public class AquamarineDriveBlue extends OpMode {
 
     @Override
     public void init() {
-        drive = new DriveSubsystem(hardwareMap, true);
+        drive = new DriveSubsystem(hardwareMap, false);
         drive.initTeleOp(gamepad1);
         shooter = new ShooterSubsystem(hardwareMap);
-        intake = new IntakeSubsystem(hardwareMap, true);
+        intake = new IntakeSubsystem(hardwareMap, false);
 
         loopTimer = new ElapsedTime();
     }

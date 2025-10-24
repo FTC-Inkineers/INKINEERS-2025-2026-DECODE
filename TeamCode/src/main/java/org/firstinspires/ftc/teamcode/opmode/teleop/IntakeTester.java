@@ -12,7 +12,7 @@ public class IntakeTester extends OpMode {
 
     @Override
     public void init() {
-        intake = new IntakeSubsystem(hardwareMap);
+        intake = new IntakeSubsystem(hardwareMap, true);
     }
 
     @Override
