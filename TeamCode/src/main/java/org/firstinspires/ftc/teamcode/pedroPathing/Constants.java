@@ -30,23 +30,23 @@ public class Constants {
             .rightFrontMotorName("rightFront")
             .rightRearMotorName("rightRear")
             // Directions for BLUE ALLIANCE
-            .leftFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
-            .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
-            .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD);
+            .leftFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
+            .leftRearMotorDirection(DcMotorSimple.Direction.FORWARD)
+            .rightFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
+            .rightRearMotorDirection(DcMotorSimple.Direction.REVERSE);
 
     public static MecanumConstants redDriveConstants = new MecanumConstants()
             .maxPower(1)
             // These names are inverse for RED ALLIANCE
             .leftRearMotorName("rightFront")
-            .leftFrontMotorName("rightBack")
+            .leftFrontMotorName("rightRear")
             .rightFrontMotorName("leftRear")
             .rightRearMotorName("leftFront")
-            // Directions for BLUE ALLIANCE
-            .leftFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
-            .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
-            .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD);
+            // Directions for RED ALLIANCE
+            .leftFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
+            .leftRearMotorDirection(DcMotorSimple.Direction.FORWARD)
+            .rightFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
+            .rightRearMotorDirection(DcMotorSimple.Direction.REVERSE);
 
     public static PinpointConstants localizerConstants = new PinpointConstants()
             // TODO: Adjust these offsets

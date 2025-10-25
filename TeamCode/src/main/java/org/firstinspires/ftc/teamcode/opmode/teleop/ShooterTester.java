@@ -29,7 +29,7 @@ public class ShooterTester extends OpMode {
         shooterSubsystem.runTeleOp(gamepad1);
 
         // Telemetry
-        shooterSubsystem.enableAllTelemetry(this);
+        shooterSubsystem.enableAllTelemetry(this, true);
 
         telemetry.addData("Loop time (ms)", loopTimer.milliseconds());
         telemetry.update();

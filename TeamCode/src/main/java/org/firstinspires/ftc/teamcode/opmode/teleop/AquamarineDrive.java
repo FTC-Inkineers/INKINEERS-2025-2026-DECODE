@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.opmode.teleop;
 
 import com.acmerobotics.dashboard.FtcDashboard;
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -8,6 +9,7 @@ import org.firstinspires.ftc.teamcode.subsystem.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystem.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.subsystem.ShooterSubsystem;
 
+@Config
 public abstract class AquamarineDrive extends OpMode {
     protected DriveSubsystem drive;
     protected ShooterSubsystem shooter;
@@ -18,11 +20,16 @@ public abstract class AquamarineDrive extends OpMode {
 
     protected abstract boolean isBlueSide();
 
+    // Telemetry Choices
+    public static boolean allDriveTelemetry = true;
+    public static boolean allShooterTelemetry = false;
+    public static boolean allIntakeTelemetry = false;
+
     @Override
     public void init() {
         drive = new DriveSubsystem(hardwareMap, isBlueSide());
-        intake = new IntakeSubsystem(hardwareMap, isBlueSide());
         shooter = new ShooterSubsystem(hardwareMap);
+        intake = new IntakeSubsystem(hardwareMap, isBlueSide());
         dashboard = FtcDashboard.getInstance();
         telemetry = dashboard.getTelemetry();
 
@@ -44,10 +51,11 @@ public abstract class AquamarineDrive extends OpMode {
         intake.runTeleOp(gamepad1);
 
         // Telemetry
-        shooter.enableAllTelemetry(this);
-        intake.enableAllTelemetry(this);
+        drive.enableAllTelemetry(this, allDriveTelemetry);
+        shooter.enableAllTelemetry(this, allShooterTelemetry);
+        intake.enableAllTelemetry(this, allIntakeTelemetry);
 
-        telemetry.addData("Loop time (ms)", loopTimer.milliseconds());
+//        telemetry.addData("Loop time (ms)", loopTimer.milliseconds());
         telemetry.update();
 
         try {

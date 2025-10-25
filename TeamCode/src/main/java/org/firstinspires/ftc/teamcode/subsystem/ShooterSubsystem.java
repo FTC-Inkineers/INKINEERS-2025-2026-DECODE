@@ -19,11 +19,13 @@ public class ShooterSubsystem {
 
     private final int SHOOTER_TICKS_PER_REV = 28;
     private final double MAX_RPM = 6000;
-    private double STATIONARY_RPM = 3000;
+    private double STATIONARY_RPM = 3500;
 
     // Configurable in FTC Dashboard
-    public static double kP = 0.001;
+    public static double kP = 0.015;
     public static double kD = 0.000;
+    public static double RPM_TOLERANCE = 10;
+
 
     private final ElapsedTime triggerTimer = new ElapsedTime();
     private final ElapsedTime shooterTimer = new ElapsedTime();
@@ -50,6 +52,9 @@ public class ShooterSubsystem {
     public double shooterPID() {
         currentRPM = shooterMotor.getVelocity() / SHOOTER_TICKS_PER_REV * 60;
         double curError = targetRPM - currentRPM;
+        if (Math.abs(curError) <= RPM_TOLERANCE) {
+            curError = 0;
+        }
 
         double p = curError * kP;
         double d = 0;
@@ -85,23 +90,27 @@ public class ShooterSubsystem {
 
         if (gamepad.right_bumper) {
             targetRPM = STATIONARY_RPM;
+            targetRPM = Math.max(0, Math.min(MAX_RPM, targetRPM));
+            targetPower = shooterPID();
         } else if (getCurrentRPM() > 0) {
-            targetRPM -= 10;
+            targetRPM = 0;
+            targetPower -= 0.05;
         }
-        // Clamp Target
-        targetRPM = Math.max(0, Math.min(MAX_RPM, targetRPM));
 
-        targetPower = shooterPID();
-        double shooterPower = Math.min(1.0, Math.max(-1.0, targetPower));
-        shooterMotor.setPower(shooterPower);
+        // final power limits.
+        targetPower = Math.min(1.0, Math.max(0.0, targetPower));
+        shooterMotor.setPower(targetPower);
     }
 
-    public void enableAllTelemetry(OpMode opMode) {
+    public void enableAllTelemetry(OpMode opMode, boolean enableAll) {
         opMode.telemetry.addLine("\\ SHOOTER SUBSYSTEM //");
-        opMode.telemetry.addData("Shooter Message", shooterMessage());
-        opMode.telemetry.addData("Trigger Time", getTimerSeconds());
-        opMode.telemetry.addLine();
-        opMode.telemetry.addData("Current Target RPM:", getStationaryRPM());
+        if (enableAll) {
+            opMode.telemetry.addData("Shooter Message", shooterMessage());
+            opMode.telemetry.addData("Trigger Time", getTimerSeconds());
+            opMode.telemetry.addLine();
+            opMode.telemetry.addData("Stationary RPM", getStationaryRPM());
+        }
+        opMode.telemetry.addData("Current Target RPM:", getTargetRPM());
         opMode.telemetry.addData("Current RPM:", getCurrentRPM());
         opMode.telemetry.addData("Shooter PID", targetPower);
     }
@@ -126,6 +135,9 @@ public class ShooterSubsystem {
     }
     public double getStationaryRPM() {
         return STATIONARY_RPM;
+    }
+    public double getTargetRPM() {
+        return targetRPM;
     }
     public double getCurrentRPM() {
         return currentRPM;

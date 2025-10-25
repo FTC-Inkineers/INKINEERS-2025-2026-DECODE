@@ -32,20 +32,28 @@ public class IntakeSubsystem {
     }
 
     private double power = 1.0;
+    private double frontPower;
+    private double backPower;
     public void runTeleOp(Gamepad gamepad) {
         // Control Logic
         // RIGHT
         if (gamepad.right_trigger > 0 && gamepad.left_trigger > 0) {
-            frontIntake.setPower(power);
-            backIntake.setPower(power);
+            frontPower = power;
+            backPower = power;
         } else if (gamepad.right_trigger > 0) {
-            frontIntake.setPower(power * (gamepad.b ? -1 : 1));
+            frontPower = power;
         } else if (gamepad.left_trigger > 0) {
-            backIntake.setPower(power * (gamepad.b ? -1 : 1));
+            backPower = power;
         } else {
-            frontIntake.setPower(0);
-            backIntake.setPower(0);
+            frontPower = 0;
+            backPower = 0;
         }
+        if (gamepad.b) {
+            backPower *= -1;
+        }
+        frontIntake.setPower(frontPower);
+        backIntake.setPower(backPower);
+
         // Adjust Power
         if (gamepad.rightBumperWasPressed()) {
             power += 0.05;
@@ -54,9 +62,11 @@ public class IntakeSubsystem {
         }
     }
 
-    public void enableAllTelemetry(OpMode opMode) {
+    public void enableAllTelemetry(OpMode opMode, boolean enableAll) {
         opMode.telemetry.addLine("\\ INTAKE SUBSYSTEM //");
-        opMode.telemetry.addData("Intake Power", getIntakePower());
+        if (enableAll) {
+            opMode.telemetry.addData("Intake Power", getIntakePower());
+        }
     }
 
     public void spinLeftIntake() {

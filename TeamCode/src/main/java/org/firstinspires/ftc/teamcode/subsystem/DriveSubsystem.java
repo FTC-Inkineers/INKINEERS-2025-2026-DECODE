@@ -10,6 +10,7 @@ import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -94,7 +95,7 @@ public class DriveSubsystem {
         );
 
         //Automated PathFollowing
-        if (gamepad.aWasPressed()) {
+        if (gamepad.backWasPressed()) {
             follower.followPath(pathChain.get());
             automatedDrive = true;
         }
@@ -109,14 +110,15 @@ public class DriveSubsystem {
             follower.startTeleopDrive();
             automatedDrive = false;
         }
+    }
 
-        telemetryM.debug("position", follower.getPose());
-        telemetryM.debug("velocity", follower.getVelocity());
-        telemetryM.debug("automatedDrive", automatedDrive);
-        telemetryM.addLine("\\ Joystick Data //");
-        telemetryM.debug("Forward", leftYInput);
-        telemetryM.debug("Strafe", leftXInput);
-        telemetryM.debug("Turn", rightXInput);
+    public void enableAllTelemetry(OpMode opMode, boolean enableAll) {
+        opMode.telemetry.addLine("\\ DRIVE //");
+        if (enableAll) {
+            opMode.telemetry.addData("position", follower.getPose());
+            opMode.telemetry.addData("velocity", follower.getVelocity());
+        }
+        opMode.telemetry.addData("automatedDrive", automatedDrive);
 
     }
 

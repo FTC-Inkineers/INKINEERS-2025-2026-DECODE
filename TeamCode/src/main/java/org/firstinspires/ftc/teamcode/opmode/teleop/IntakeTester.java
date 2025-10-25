@@ -18,7 +18,7 @@ public class IntakeTester extends OpMode {
     @Override
     public void loop() {
         intake.runTeleOp(gamepad1);
-        telemetry.addData("Intake Power", intake.getIntakePower());
+        intake.enableAllTelemetry(this, true);
         telemetry.update();
     }
 }
