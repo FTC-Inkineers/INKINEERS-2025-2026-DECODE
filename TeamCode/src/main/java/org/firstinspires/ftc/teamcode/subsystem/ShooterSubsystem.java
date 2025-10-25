@@ -22,9 +22,13 @@ public class ShooterSubsystem {
     private double STATIONARY_RPM = 3500;
 
     // Configurable in FTC Dashboard
+    public static double kF = 0.78/3514.0; // Motor Power / RPM | 0.78 / 3514 RPM
     public static double kP = 0.015;
-    public static double kD = 0.000;
+    public static double kD = 0.0008;
     public static double RPM_TOLERANCE = 10;
+    // Smoothing coefficient (alpha) for the Exponential Moving Average filter.
+    // A lower value means more smoothing but more lag. Try a value between 0.1 and 0.3.
+    public static double SMOOTHING_ALPHA = 0.2;
 
 
     private final ElapsedTime triggerTimer = new ElapsedTime();
@@ -46,9 +50,21 @@ public class ShooterSubsystem {
     // RPM PID
     private double targetRPM = 0;
     private double targetPower = 0;
+
+    // Variable to hold the previously calculated, filtered RPM.
+    private double lastFilteredRPM = 0.0;
     private double getCurrentRPM() {
-        return shooterMotor.getVelocity() / SHOOTER_TICKS_PER_REV * 60;
+        // 1. Calculate the raw, instantaneous RPM
+        double rawRPM = shooterMotor.getVelocity() / SHOOTER_TICKS_PER_REV * 60;
+        // 2. Apply the Exponential Moving Average (EMA) Filter
+        double filteredRPM = (SMOOTHING_ALPHA * rawRPM) +
+                ((1.0 - SMOOTHING_ALPHA) * lastFilteredRPM);
+        // 3. Update the stored value for the next loop iteration
+        lastFilteredRPM = filteredRPM;
+
+        return filteredRPM;
     }
+
     private double prevError;
     public double shooterPID() {
         double curError = targetRPM - getCurrentRPM();
@@ -56,6 +72,7 @@ public class ShooterSubsystem {
             curError = 0;
         }
 
+        double f = kF * targetRPM;
         double p = curError * kP;
         double d = 0;
         if (shooterTimer.seconds() > 0)
@@ -64,7 +81,7 @@ public class ShooterSubsystem {
         prevError = curError;
         shooterTimer.reset();
 
-        return p + d;
+        return f + p + d;
     }
 
     public void runTeleOp(Gamepad gamepad) {
@@ -113,6 +130,26 @@ public class ShooterSubsystem {
         opMode.telemetry.addData("Current Target RPM:", getTargetRPM());
         opMode.telemetry.addData("Current RPM:", getCurrentRPM());
         opMode.telemetry.addData("Shooter PID", targetPower);
+    }
+
+    public double testPower = 0.5;
+    public double changeFactor = 0.05;
+    public void runKfTester(Gamepad gamepad) {
+        // 0.78 | 3514 RPM
+        targetRPM = 3500;
+        if (gamepad.dpadUpWasPressed()) {
+            testPower += changeFactor;
+        } else if (gamepad.dpadDownWasPressed()) {
+            testPower -= changeFactor;
+        }
+
+        if (gamepad.right_bumper) {
+            changeFactor = 0.05;
+        } else if (gamepad.left_bumper) {
+            changeFactor = 0.01;
+        }
+
+        shooterMotor.setPower(testPower);
     }
 
     // PRIMITIVE METHODS
