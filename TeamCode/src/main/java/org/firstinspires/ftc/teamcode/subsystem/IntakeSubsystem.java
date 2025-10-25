@@ -14,19 +14,16 @@ public class IntakeSubsystem {
 
     IntakeState intakeState;
 
-    private final boolean blueSide;
-
     private final DcMotor frontIntake;
     private final DcMotor backIntake;
 
     public IntakeSubsystem(HardwareMap hardwareMap, boolean isBlueSide) {
-        blueSide = isBlueSide;
 
         frontIntake = hardwareMap.get(DcMotor.class, isBlueSide ? "rightIntake" : "leftIntake");
         backIntake = hardwareMap.get(DcMotor.class, isBlueSide ? "leftIntake" : "rightIntake");
 
-        frontIntake.setDirection(blueSide ? DcMotor.Direction.FORWARD: DcMotor.Direction.REVERSE);
-        backIntake.setDirection(blueSide ? DcMotor.Direction.REVERSE : DcMotorSimple.Direction.FORWARD);
+        frontIntake.setDirection(isBlueSide ? DcMotor.Direction.FORWARD: DcMotor.Direction.REVERSE);
+        backIntake.setDirection(isBlueSide ? DcMotor.Direction.REVERSE : DcMotorSimple.Direction.FORWARD);
 
         intakeState = IntakeState.DUAL_IDLE;
     }

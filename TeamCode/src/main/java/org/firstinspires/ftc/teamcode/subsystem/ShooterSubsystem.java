@@ -46,12 +46,12 @@ public class ShooterSubsystem {
     // RPM PID
     private double targetRPM = 0;
     private double targetPower = 0;
-    private double currentRPM = 0;
-
+    private double getCurrentRPM() {
+        return shooterMotor.getVelocity() / SHOOTER_TICKS_PER_REV * 60;
+    }
     private double prevError;
     public double shooterPID() {
-        currentRPM = shooterMotor.getVelocity() / SHOOTER_TICKS_PER_REV * 60;
-        double curError = targetRPM - currentRPM;
+        double curError = targetRPM - getCurrentRPM();
         if (Math.abs(curError) <= RPM_TOLERANCE) {
             curError = 0;
         }
@@ -94,7 +94,7 @@ public class ShooterSubsystem {
             targetPower = shooterPID();
         } else if (getCurrentRPM() > 0) {
             targetRPM = 0;
-            targetPower -= 0.05;
+            targetPower -= 0.025;
         }
 
         // final power limits.
@@ -139,8 +139,4 @@ public class ShooterSubsystem {
     public double getTargetRPM() {
         return targetRPM;
     }
-    public double getCurrentRPM() {
-        return currentRPM;
-    }
-
 }
