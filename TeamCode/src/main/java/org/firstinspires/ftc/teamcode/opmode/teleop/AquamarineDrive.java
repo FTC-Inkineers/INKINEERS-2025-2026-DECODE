@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmode.teleop;
 
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -11,6 +12,7 @@ public abstract class AquamarineDrive extends OpMode {
     protected DriveSubsystem drive;
     protected ShooterSubsystem shooter;
     protected IntakeSubsystem intake;
+    protected FtcDashboard dashboard;
 
     private ElapsedTime loopTimer;
 
@@ -21,6 +23,8 @@ public abstract class AquamarineDrive extends OpMode {
         drive = new DriveSubsystem(hardwareMap, isBlueSide());
         intake = new IntakeSubsystem(hardwareMap, isBlueSide());
         shooter = new ShooterSubsystem(hardwareMap);
+        dashboard = FtcDashboard.getInstance();
+        telemetry = dashboard.getTelemetry();
 
         drive.initTeleOp(gamepad1);
 
@@ -45,5 +49,12 @@ public abstract class AquamarineDrive extends OpMode {
 
         telemetry.addData("Loop time (ms)", loopTimer.milliseconds());
         telemetry.update();
+
+        try {
+            Thread.sleep(20);
+        } catch (InterruptedException e) {
+            // Restore the interrupted status
+            Thread.currentThread().interrupt();
+        }
     }
 }
