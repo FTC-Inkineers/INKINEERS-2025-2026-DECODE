@@ -89,7 +89,7 @@ public class DriveSubsystem {
         follower.setTeleOpDrive(
                 -leftYInput, // Forward
                 -leftXInput, // Strafe
-                -rightXInput * (blueSide ? -1 : 1), // Turn
+                -rightXInput, // Turn
                 automatedDrive // Field Centric
         );
 

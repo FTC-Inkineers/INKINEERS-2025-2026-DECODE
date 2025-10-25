@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystem;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -10,6 +11,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /** @noinspection FieldCanBeLocal*/
+@Config
 public class ShooterSubsystem {
     private final DcMotorEx shooterMotor; // 6000 RPM YellowJacket Motor
     private final CRServo triggerServo;
@@ -18,6 +20,10 @@ public class ShooterSubsystem {
     private final int SHOOTER_TICKS_PER_REV = 28;
     private final double MAX_RPM = 6000;
     private double STATIONARY_RPM = 3000;
+
+    // Configurable in FTC Dashboard
+    public static double kP = 0.001;
+    public static double kD = 0.000;
 
     private final ElapsedTime triggerTimer = new ElapsedTime();
     private final ElapsedTime shooterTimer = new ElapsedTime();
@@ -42,8 +48,6 @@ public class ShooterSubsystem {
 
     private double prevError;
     public double shooterPID() {
-        double kP = 0.001;
-        double kD = 0.00001;
         currentRPM = shooterMotor.getVelocity() / SHOOTER_TICKS_PER_REV * 60;
         double curError = targetRPM - currentRPM;
 
@@ -54,6 +58,7 @@ public class ShooterSubsystem {
 
         prevError = curError;
         shooterTimer.reset();
+
         return p + d;
     }
 
