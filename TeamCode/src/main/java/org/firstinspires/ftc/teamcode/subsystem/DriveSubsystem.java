@@ -81,7 +81,8 @@ public class DriveSubsystem {
 
         double leftYInput = forwardRamper.rampInput(gamepad.left_stick_y);
         double leftXInput = strafeRamper.rampInput(gamepad.left_stick_x);
-        double rightXInput = turnRamper.rampInput(gamepad.right_stick_x);
+        // Needs to be less sensitive for turning.
+        double rightXInput = turnRamper.rampInput(gamepad.right_stick_x) * 0.6;
 
         // Last parameter --- True: Robot Centric | False: Field Centric
         follower.setTeleOpDrive(

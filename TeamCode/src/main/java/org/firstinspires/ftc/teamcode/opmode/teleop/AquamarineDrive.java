@@ -47,7 +47,7 @@ public abstract class AquamarineDrive extends OpMode {
         loopTimer.reset();
 
         drive.runTeleOp();
-        shooter.runTeleOp(gamepad1);
+        shooter.runTeleOp(gamepad2);
         intake.runTeleOp(gamepad1);
 
         // Telemetry

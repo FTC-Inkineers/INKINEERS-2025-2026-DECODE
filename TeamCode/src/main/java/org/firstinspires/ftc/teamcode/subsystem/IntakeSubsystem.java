@@ -29,25 +29,28 @@ public class IntakeSubsystem {
     }
 
     private double power = 1.0;
-    private double frontPower;
-    private double backPower;
+
     public void runTeleOp(Gamepad gamepad) {
         // Control Logic
-        // RIGHT
-        if (gamepad.right_trigger > 0 && gamepad.left_trigger > 0) {
-            frontPower = power;
-            backPower = power;
+        // Front Intake
+        double frontPower;
+        if (gamepad.right_bumper) {
+            frontPower = -power;
         } else if (gamepad.right_trigger > 0) {
             frontPower = power;
+        } else {
+            frontPower = 0;
+        }
+        // Back Intake
+        double backPower;
+        if (gamepad.left_bumper) {
+            backPower = -power;
         } else if (gamepad.left_trigger > 0) {
             backPower = power;
         } else {
-            frontPower = 0;
             backPower = 0;
         }
-        if (gamepad.b) {
-            backPower *= -1;
-        }
+
         frontIntake.setPower(frontPower);
         backIntake.setPower(backPower);
 
