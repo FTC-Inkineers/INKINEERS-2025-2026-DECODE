@@ -53,7 +53,7 @@ public class ShooterSubsystem {
 
     // Variable to hold the previously calculated, filtered RPM.
     private double lastFilteredRPM = 0.0;
-    private double getCurrentRPM() {
+    public double getCurrentRPM() {
         // 1. Calculate the raw, instantaneous RPM
         double rawRPM = shooterMotor.getVelocity() / SHOOTER_TICKS_PER_REV * 60;
         // 2. Apply the Exponential Moving Average (EMA) Filter
