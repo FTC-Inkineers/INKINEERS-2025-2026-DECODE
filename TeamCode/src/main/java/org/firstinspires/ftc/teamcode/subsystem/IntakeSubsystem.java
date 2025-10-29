@@ -19,11 +19,11 @@ public class IntakeSubsystem {
 
     public IntakeSubsystem(HardwareMap hardwareMap, boolean isBlueSide) {
 
-        frontIntake = hardwareMap.get(DcMotor.class, isBlueSide ? "rightIntake" : "leftIntake");
-        backIntake = hardwareMap.get(DcMotor.class, isBlueSide ? "leftIntake" : "rightIntake");
+        frontIntake = hardwareMap.get(DcMotor.class, isBlueSide ? "leftIntake" : "rightIntake");
+        backIntake = hardwareMap.get(DcMotor.class, isBlueSide ? "rightIntake" : "leftIntake");
 
-        frontIntake.setDirection(isBlueSide ? DcMotor.Direction.FORWARD: DcMotor.Direction.REVERSE);
-        backIntake.setDirection(isBlueSide ? DcMotor.Direction.REVERSE : DcMotorSimple.Direction.FORWARD);
+        frontIntake.setDirection(isBlueSide ? DcMotor.Direction.REVERSE: DcMotor.Direction.FORWARD);
+        backIntake.setDirection(isBlueSide ? DcMotor.Direction.FORWARD : DcMotorSimple.Direction.REVERSE);
 
         intakeState = IntakeState.DUAL_IDLE;
     }
@@ -67,10 +67,6 @@ public class IntakeSubsystem {
         if (enableAll) {
             opMode.telemetry.addData("Intake Power", getIntakePower());
         }
-    }
-
-    public void spinLeftIntake() {
-        frontIntake.setPower(power);
     }
 
     public double getIntakePower() {

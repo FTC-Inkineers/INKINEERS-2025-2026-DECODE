@@ -48,16 +48,29 @@ public class Constants {
             .rightFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
             .rightRearMotorDirection(DcMotorSimple.Direction.REVERSE);
 
-    public static PinpointConstants localizerConstants = new PinpointConstants()
-            // TODO: Adjust these offsets
-            .forwardPodY(-5)
-            .strafePodX(0.5)
-            .distanceUnit(DistanceUnit.INCH)
+    public static PinpointConstants blueLocalizerConstants = new PinpointConstants()
+            // For BLUE ALLIANCE
+            .forwardPodY(-124.038)
+            .distanceUnit(DistanceUnit.MM)
+            .strafePodX(-24.338)
+            .distanceUnit(DistanceUnit.MM)
             .hardwareMapName("pinpoint")
             .encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD)
-            // TODO: Reverse needed pods
+            // For BLUE ALLIANCE
             .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD)
-            .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD);
+            .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED);
+
+    public static PinpointConstants redLocalizerConstants = new PinpointConstants()
+            // For RED ALLIANCE
+            .forwardPodY(124.038)
+            .distanceUnit(DistanceUnit.MM)
+            .strafePodX(24.338)
+            .distanceUnit(DistanceUnit.MM)
+            .hardwareMapName("pinpoint")
+            .encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD)
+            // For RED ALLIANCE
+            .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED)
+            .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED);
 
     public static Follower createFollower(HardwareMap hardwareMap) {
         return createFollower(hardwareMap, true);
@@ -66,8 +79,8 @@ public class Constants {
     public static Follower createFollower(HardwareMap hardwareMap, boolean isBlueSide) {
         return new FollowerBuilder(followerConstants, hardwareMap)
                 .pathConstraints(pathConstraints)
-                .mecanumDrivetrain(isBlueSide? blueDriveConstants : redDriveConstants)
-                .pinpointLocalizer(localizerConstants)
+                .mecanumDrivetrain(isBlueSide ? blueDriveConstants : redDriveConstants)
+                .pinpointLocalizer(isBlueSide ? blueLocalizerConstants : redLocalizerConstants)
                 .build();
     }
 }
