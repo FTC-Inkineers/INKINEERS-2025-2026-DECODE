@@ -161,7 +161,6 @@ public class DriveSubsystem {
     }
 
     public boolean alignToPose(double x, double y, double z, double targetDistance) {
-
         double xError = x - targetDistance;     // Positive = too far
 
         // Calculate movement commands
