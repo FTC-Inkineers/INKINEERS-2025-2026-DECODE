@@ -28,7 +28,7 @@ public class DriveSubsystem {
     private static final double kTurn = 0.02;      // Rotation
     
     // PEDRO PATHING
-    private final Follower follower;
+    public final Follower follower;
     public static Pose startingPose;
     private boolean automatedDrive;
     private Supplier<PathChain> pathChain;
@@ -65,6 +65,10 @@ public class DriveSubsystem {
 
     public void initAuto() {
 
+    }
+
+    public void followPath(PathChain pathChain) {
+        follower.followPath(pathChain);
     }
     
     public void start() {

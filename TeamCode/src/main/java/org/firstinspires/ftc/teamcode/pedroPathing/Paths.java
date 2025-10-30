@@ -6,13 +6,8 @@ import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 
+/** @noinspection FieldCanBeLocal*/
 public class Paths {
-
-    // Enum to easily select the alliance side in your OpModes
-    public enum Alliance {
-        BLUE, // The paths as defined below
-        RED   // The reflected paths
-    }
 
     //region MASTER PATH DEFINITIONS (Default to BLUE alliance)
     // These variables will be used as-is for BLUE or reflected for RED.
@@ -49,18 +44,17 @@ public class Paths {
      * @param follower The Follower object from your drive train.
      */
     public Paths(Follower follower) {
-        this(follower, Alliance.BLUE); // Defaults to BLUE
+        this(follower, true); // Defaults to BLUE
     }
 
     /**
      * The main constructor that builds paths for the specified alliance.
      * @param follower The Follower object from your drive train.
-     * @param alliance The alliance color (BLUE or RED).
      */
-    public Paths(Follower follower, Alliance alliance) {
+    public Paths(Follower follower, boolean isBlueSide) {
         // If RED alliance, reflect all master poses and headings.
         // If BLUE, this block is skipped and the default values are used.
-        if (alliance == Alliance.RED) {
+        if (isBlueSide) {
             p1_start = reflect(p1_start);
             p1_end = reflect(p1_end);
             p1_start_h = reflect(p1_start_h);
