@@ -12,26 +12,32 @@ public class Paths {
     //region MASTER PATH DEFINITIONS (Default to BLUE alliance)
     // These variables will be used as-is for BLUE or reflected for RED.
 
+    // START to Shoot pose 1
     private Pose p1_start = new Pose(56.000, 8.000);
     private Pose p1_end   = new Pose(56.000, 17.000);
     private double p1_start_h = Math.toRadians(90);
     private double p1_end_h   = Math.toRadians(120);
 
+    // Shoot pose 1 to Intake 1
     private Pose p2_c1 = new Pose(60.000, 42.000);
     private Pose p2_end = new Pose(12.000, 36.000);
     private double p2_end_h = Math.toRadians(90);
 
+    // Intake 1 to Shoot pose 2
     private Pose p3_c1 = new Pose(56.000, 36.000);
-    private Pose p3_end = new Pose(44.000, 64.000);
     private double p3_end_h = Math.toRadians(120);
 
+    // Shoot pose 2 to Intake 2
+    private Pose p4_c1 = new Pose(60.000, 64.000);
     private Pose p4_end = new Pose(12.000, 60.000);
     private double p4_end_h = Math.toRadians(90);
 
+    // Intake 2 to Shoot pose 3
     private Pose p5_c1 = new Pose(56.000, 64.000);
     private Pose p5_end = new Pose(56.000, 84.000);
     private double p5_end_h = Math.toRadians(130);
 
+    // Shoot pose 3 to Intake 3
     private Pose p6_end = new Pose(12.000, 84.000);
     private double p6_end_h = Math.toRadians(90);
     //endregion
@@ -65,9 +71,9 @@ public class Paths {
             p2_end_h = reflect(p2_end_h);
 
             p3_c1 = reflect(p3_c1);
-            p3_end = reflect(p3_end);
             p3_end_h = reflect(p3_end_h);
 
+            p4_c1 = reflect(p4_c1);
             p4_end = reflect(p4_end);
             p4_end_h = reflect(p4_end_h);
 
@@ -79,38 +85,43 @@ public class Paths {
             p6_end_h = reflect(p6_end_h);
         }
 
-        // Now, build the PathChain objects using the (potentially reflected) class member variables.
-        // Path start/end points are linked dynamically.
+        // START to Shoot pose 1
         Path1 = follower.pathBuilder()
                 .addPath(new BezierLine(p1_start, p1_end))
                 .setLinearHeadingInterpolation(p1_start_h, p1_end_h)
                 .build();
 
+        // Shoot pose 1 to Intake 1
         Path2 = follower.pathBuilder()
                 .addPath(new BezierCurve(p1_end, p2_c1, p2_end))
                 .setLinearHeadingInterpolation(p1_end_h, p2_end_h)
                 .build();
 
+        // Intake 1 to Shoot pose 2
         Path3 = follower.pathBuilder()
-                .addPath(new BezierCurve(p2_end, p3_c1, p3_end))
+                .addPath(new BezierCurve(p2_end, p3_c1, p1_end))
                 .setLinearHeadingInterpolation(p2_end_h, p3_end_h)
                 .build();
 
+        // Shoot pose 2 to Intake 2
         Path4 = follower.pathBuilder()
-                .addPath(new BezierLine(p3_end, p4_end))
+                .addPath(new BezierCurve(p1_end, p4_c1, p4_end))
                 .setLinearHeadingInterpolation(p3_end_h, p4_end_h)
                 .build();
 
+        // Intake 2 to Shoot pose 3
         Path5 = follower.pathBuilder()
                 .addPath(new BezierCurve(p4_end, p5_c1, p5_end))
                 .setLinearHeadingInterpolation(p4_end_h, p5_end_h)
                 .build();
 
+        // Shoot pose 3 to Intake 3
         Path6 = follower.pathBuilder()
                 .addPath(new BezierLine(p5_end, p6_end))
                 .setLinearHeadingInterpolation(p5_end_h, p6_end_h)
                 .build();
 
+        // Intake 3 to Shoot pose 4
         Path7 = follower.pathBuilder()
                 .addPath(new BezierLine(p6_end, p5_end)) // This is the reverse of Path 6
                 .setLinearHeadingInterpolation(p6_end_h, p5_end_h)
