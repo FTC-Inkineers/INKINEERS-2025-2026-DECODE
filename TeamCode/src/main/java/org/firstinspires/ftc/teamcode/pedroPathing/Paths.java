@@ -9,8 +9,10 @@ import com.pedropathing.paths.PathChain;
 /** @noinspection FieldCanBeLocal*/
 public class Paths {
 
-    //region MASTER PATH DEFINITIONS (Default to BLUE alliance)
+    // region MASTER PATH DEFINITIONS (Default to BLUE alliance)
     // These variables will be used as-is for BLUE or reflected for RED.
+
+    // TODO: make sure to shoot in launch zone
 
     private Pose p1_start = new Pose(56.000, 8.000);
     private Pose p1_end   = new Pose(56.000, 17.000);
