@@ -96,10 +96,9 @@ public class DriveSubsystem {
                 automatedDrive // Field Centric
         );
 
-        //Automated PathFollowing
+        // Reset Pose
         if (gamepad.backWasPressed()) {
-            follower.followPath(pathChain.get());
-            automatedDrive = true;
+            follower.setPose(new Pose(0, 0, 0));
         }
 
         // Hold Y to align

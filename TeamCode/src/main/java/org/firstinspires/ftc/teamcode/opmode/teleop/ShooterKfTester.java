@@ -25,7 +25,9 @@ public class ShooterKfTester extends OpMode {
         // Telemetry
         shooterSubsystem.enableAllTelemetry(this, true);
         telemetry.addData("Shooter Power", shooterSubsystem.testPower);
-        telemetry.addData("Change Factor", shooterSubsystem.changeFactor);
+        telemetry.addData("Amount of Change", shooterSubsystem.changeFactor);
+        telemetry.addData("Increment / Decrement Power", "DPAD UP / DOWN");
+        telemetry.addData("Increase / Decrease Amount of Change", "RB / LB");
         telemetry.update();
     }
 }

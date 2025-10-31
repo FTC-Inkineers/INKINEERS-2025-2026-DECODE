@@ -62,6 +62,19 @@ public class IntakeSubsystem {
         }
     }
 
+    public void setFrontIntake(double power) {
+        frontIntake.setPower(power);
+    }
+
+    public void setBackIntake(double power) {
+        backIntake.setPower(power);
+    }
+
+    public void stop() {
+        frontIntake.setPower(0);
+        backIntake.setPower(0);
+    }
+
     public void enableAllTelemetry(OpMode opMode, boolean enableAll) {
         opMode.telemetry.addLine("\\ INTAKE SUBSYSTEM //");
         if (enableAll) {

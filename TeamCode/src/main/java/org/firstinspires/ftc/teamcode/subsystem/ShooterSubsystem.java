@@ -14,12 +14,15 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 @Config
 public class ShooterSubsystem {
     private final DcMotorEx shooterMotor; // 6000 RPM YellowJacket Motor
-    private final CRServo triggerServo;
+    private final DcMotor triggerMotor;
     private final CRServo hoodServo;
 
     private final int SHOOTER_TICKS_PER_REV = 28;
     private final double MAX_RPM = 6000;
-    private double STATIONARY_RPM = 3500;
+    private double STATIONARY_RPM_FAR = 3500;
+    private double STATIONARY_RPM_CLOSE = 2800;
+
+    public static double triggerPower = 0.92;
 
     // Configurable in FTC Dashboard
     public static double kF = 0.78/3514.0; // Motor Power / RPM | 0.78 / 3514 RPM
@@ -28,7 +31,7 @@ public class ShooterSubsystem {
     public static double RPM_TOLERANCE = 10;
     // Smoothing coefficient (alpha) for the Exponential Moving Average filter.
     // A lower value means more smoothing but more lag. Try a value between 0.1 and 0.3.
-    public static double SMOOTHING_ALPHA = 0.2;
+    public static double SMOOTHING_ALPHA = 0.1;
 
 
     private final ElapsedTime triggerTimer = new ElapsedTime();
@@ -37,11 +40,12 @@ public class ShooterSubsystem {
 
     public ShooterSubsystem(HardwareMap hardwareMap) {
         shooterMotor = hardwareMap.get(DcMotorEx.class, "shooterMotor");
-        triggerServo = hardwareMap.get(CRServo.class, "triggerServo");
+        triggerMotor = hardwareMap.get(DcMotor.class, "triggerMotor");
         hoodServo = hardwareMap.get(CRServo.class, "hoodServo");
 
         shooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         shooterMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        triggerMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         triggerTimer.reset();
         shooterTimer.reset();
@@ -89,6 +93,9 @@ public class ShooterSubsystem {
         // Control Logic
         if (gamepad.aWasPressed()) {
             triggerTimer.reset();
+        } else if (gamepad.b) {
+            reverseTrigger();
+            shooterMessage = "reversing";
         } else if (gamepad.a) {
             pullTrigger();
             shooterMessage = "firing";
@@ -99,14 +106,18 @@ public class ShooterSubsystem {
 
         // Adjust
         if (gamepad.dpadUpWasPressed()) {
-            STATIONARY_RPM += 100;
+            STATIONARY_RPM_FAR += 100;
         } else if (gamepad.dpadDownWasPressed()) {
-            STATIONARY_RPM -= 100;
+            STATIONARY_RPM_FAR -= 100;
         }
 
 
-        if (gamepad.right_bumper) {
-            targetRPM = STATIONARY_RPM;
+        if (gamepad.right_bumper || gamepad.left_bumper) {
+            if (gamepad.right_bumper)
+                targetRPM = STATIONARY_RPM_FAR;
+            else if (gamepad.left_bumper)
+                targetRPM = STATIONARY_RPM_CLOSE;
+
             targetRPM = Math.max(0, Math.min(MAX_RPM, targetRPM));
             targetPower = shooterPID();
         } else if (getCurrentRPM() > 0) {
@@ -117,6 +128,24 @@ public class ShooterSubsystem {
         // final power limits.
         targetPower = Math.min(1.0, Math.max(0.0, targetPower));
         shooterMotor.setPower(targetPower);
+    }
+
+    public void runAuto() {
+
+        targetPower = Math.min(1.0, Math.max(0.0, targetPower));
+        shooterMotor.setPower(targetPower);
+    }
+
+    public void setTargetRPM(double rpm) {
+        targetRPM = rpm;
+    }
+
+    public void autoShoot() {
+
+    }
+
+    public boolean isIdle() {
+        return targetRPM <= 10;
     }
 
     public void enableAllTelemetry(OpMode opMode, boolean enableAll) {
@@ -155,11 +184,15 @@ public class ShooterSubsystem {
     // PRIMITIVE METHODS
 
     public void pullTrigger() {
-        triggerServo.setPower(1.0);
+        triggerMotor.setPower(triggerPower);
+    }
+
+    public void reverseTrigger() {
+        triggerMotor.setPower(-triggerPower);
     }
 
     public void releaseTrigger() {
-        triggerServo.setPower(0.0);
+        triggerMotor.setPower(0.0);
     }
 
     public double getTimerSeconds() {
@@ -171,7 +204,7 @@ public class ShooterSubsystem {
         return shooterMessage;
     }
     public double getStationaryRPM() {
-        return STATIONARY_RPM;
+        return STATIONARY_RPM_FAR;
     }
     public double getTargetRPM() {
         return targetRPM;

@@ -16,7 +16,7 @@ public abstract class MainAutonomous extends OpMode {
 
     protected abstract boolean isBlueSide();
 
-    private ElapsedTime pathTimer, actionTimer, opmodeTimer;
+    private ElapsedTime pathTimer, opmodeTimer;
     private int pathState;
 
     @Override
@@ -27,6 +27,16 @@ public abstract class MainAutonomous extends OpMode {
         paths = new Paths(drive.follower, isBlueSide());
 
         drive.initAuto();
+
+        pathTimer = new ElapsedTime();;
+        opmodeTimer = new ElapsedTime();
+    }
+
+    @Override
+    public void start() {
+        pathTimer.reset();
+        opmodeTimer.reset();
+        setPathState(0);
     }
 
     @Override
@@ -34,17 +44,108 @@ public abstract class MainAutonomous extends OpMode {
 
         // These loop the movements of the robot, these must be called continuously in order to work
         drive.follower.update();
+        shooter.runAuto();
+
         autonomousPathUpdate();
 
         // Feedback to Driver Hub for debugging
         telemetry.addData("path state", pathState);
+        telemetry.addData("Opmode Time", opmodeTimer.toString());
+        telemetry.addData("Path Timer", pathTimer.toString());
         drive.enableAllTelemetry(this, true);
+        shooter.enableAllTelemetry(this, false);
         telemetry.update();
     }
 
     public void autonomousPathUpdate() {
         switch(pathState) {
             case 0:
+                // State 0: Start following Path 1
+                drive.follower.followPath(paths.Path1, true);
+                setPathState(1);
+                break;
+
+            case 1:
+                // State 1: Wait for Path 1 to finish, then shoot
+                if (!drive.follower.isBusy()) {
+                    shooter.autoShoot(); // Assumes a method that handles shooting sequence
+                    setPathState(2);
+                }
+                break;
+
+            case 2:
+                // State 2: Wait for shooting to complete, then start Path 2 with intake
+                if (shooter.isIdle()) { // Wait for shooter
+                    intake.setFrontIntake(1); // Turn on intake
+                    drive.follower.followPath(paths.Path2, 0.6, true);
+                    setPathState(3);
+                }
+                break;
+
+            case 3:
+                if (!drive.follower.isBusy()) {
+                    intake.stop();
+                    drive.follower.followPath(paths.Path3, true);
+                    setPathState(4);
+                }
+                break;
+
+            case 4:
+                if (!drive.follower.isBusy()) {
+                    shooter.autoShoot();
+                    setPathState(5);
+                }
+                break;
+
+            case 5:
+                if (shooter.isIdle()) {
+                    intake.setFrontIntake(1);
+                    drive.follower.followPath(paths.Path4, 0.6, true);
+                    setPathState(6);
+                }
+                break;
+
+            case 6:
+                if (!drive.follower.isBusy()) {
+                    intake.stop();
+                    drive.follower.followPath(paths.Path5, true);
+                    setPathState(7);
+                }
+                break;
+
+            case 7:
+                if (!drive.follower.isBusy()) {
+                    shooter.autoShoot();
+                    setPathState(8);
+                }
+                break;
+
+            case 8:
+                if (shooter.isIdle()) {
+                    intake.setFrontIntake(1);
+                    drive.follower.followPath(paths.Path6, 0.6, true);
+                    setPathState(9);
+                }
+                break;
+
+            case 9:
+                if (!drive.follower.isBusy()) {
+                    intake.stop();
+                    drive.follower.followPath(paths.Path7, true);
+                    setPathState(10); // Move to idle state
+                }
+                break;
+
+            case 10:
+                if (!drive.follower.isBusy()) {
+                    shooter.autoShoot();
+                    setPathState(11);
+                }
+
+                break;
+
+            case 11:
+
                 break;
         }
     }
