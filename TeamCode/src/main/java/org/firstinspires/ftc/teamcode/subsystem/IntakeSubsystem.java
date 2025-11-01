@@ -14,16 +14,16 @@ public class IntakeSubsystem {
 
     IntakeState intakeState;
 
-    private final DcMotor frontIntake;
     private final DcMotor backIntake;
+    private final DcMotor frontIntake;
 
     public IntakeSubsystem(HardwareMap hardwareMap, boolean isBlueSide) {
 
-        frontIntake = hardwareMap.get(DcMotor.class, isBlueSide ? "leftIntake" : "rightIntake");
-        backIntake = hardwareMap.get(DcMotor.class, isBlueSide ? "rightIntake" : "leftIntake");
+        backIntake = hardwareMap.get(DcMotor.class, isBlueSide ? "leftIntake" : "rightIntake");
+        frontIntake = hardwareMap.get(DcMotor.class, isBlueSide ? "rightIntake" : "leftIntake");
 
-        frontIntake.setDirection(isBlueSide ? DcMotor.Direction.REVERSE: DcMotor.Direction.FORWARD);
-        backIntake.setDirection(isBlueSide ? DcMotor.Direction.FORWARD : DcMotorSimple.Direction.REVERSE);
+        backIntake.setDirection(isBlueSide ? DcMotor.Direction.REVERSE: DcMotor.Direction.FORWARD);
+        frontIntake.setDirection(isBlueSide ? DcMotor.Direction.FORWARD : DcMotorSimple.Direction.REVERSE);
 
         intakeState = IntakeState.DUAL_IDLE;
     }
@@ -32,27 +32,27 @@ public class IntakeSubsystem {
 
     public void runTeleOp(Gamepad gamepad) {
         // Control Logic
-        // Front Intake
+        // Left Side Intake
         double frontPower;
-        if (gamepad.right_bumper) {
-            frontPower = -power;
-        } else if (gamepad.right_trigger > 0) {
+        if (gamepad.left_bumper) {
+            frontPower = -power * 0.6;
+        } else if (gamepad.left_trigger > 0) {
             frontPower = power;
         } else {
             frontPower = 0;
         }
-        // Back Intake
+        // Right Side Intake
         double backPower;
-        if (gamepad.left_bumper) {
-            backPower = -power;
-        } else if (gamepad.left_trigger > 0) {
+        if (gamepad.right_bumper) {
+            backPower = -power * 0.6;
+        } else if (gamepad.right_trigger > 0) {
             backPower = power;
         } else {
             backPower = 0;
         }
 
-        frontIntake.setPower(frontPower);
-        backIntake.setPower(backPower);
+        backIntake.setPower(frontPower);
+        frontIntake.setPower(backPower);
 
         // Adjust Power
         if (gamepad.rightBumperWasPressed()) {
@@ -63,16 +63,16 @@ public class IntakeSubsystem {
     }
 
     public void setFrontIntake(double power) {
-        frontIntake.setPower(power);
-    }
-
-    public void setBackIntake(double power) {
         backIntake.setPower(power);
     }
 
+    public void setBackIntake(double power) {
+        frontIntake.setPower(power);
+    }
+
     public void stop() {
-        frontIntake.setPower(0);
         backIntake.setPower(0);
+        frontIntake.setPower(0);
     }
 
     public void enableAllTelemetry(OpMode opMode, boolean enableAll) {
