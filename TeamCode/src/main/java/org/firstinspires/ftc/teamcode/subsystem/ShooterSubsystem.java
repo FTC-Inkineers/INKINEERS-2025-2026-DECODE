@@ -28,7 +28,7 @@ public class ShooterSubsystem {
     public static double kF = 0.78/3514.0; // Motor Power / RPM | 0.78 / 3514 RPM
     public static double kP = 0.01;
     public static double kD = 0.0008;
-    public static double RPM_TOLERANCE = 10;
+    public static double RPM_TOLERANCE = 40;
     // Smoothing coefficient (alpha) for the Exponential Moving Average filter.
     // A lower value means more smoothing but more lag. Try a value between 0.1 and 0.3.
     public static double SMOOTHING_ALPHA = 0.1;
@@ -70,19 +70,20 @@ public class ShooterSubsystem {
     }
 
     private double prevError;
+    private double currError;
     public double shooterPID() {
-        double curError = targetRPM - getCurrentRPM();
-        if (Math.abs(curError) <= RPM_TOLERANCE) {
-            curError = 0;
+        currError = targetRPM - getCurrentRPM();
+        if (Math.abs(currError) <= RPM_TOLERANCE) {
+            currError = 0;
         }
 
         double f = kF * targetRPM;
-        double p = curError * kP;
+        double p = currError * kP;
         double d = 0;
         if (shooterTimer.seconds() > 0)
-            d = kD * (curError - prevError) / (shooterTimer.seconds());
+            d = kD * (currError - prevError) / (shooterTimer.seconds());
 
-        prevError = curError;
+        prevError = currError;
         shooterTimer.reset();
 
         return f + p + d;
@@ -146,6 +147,10 @@ public class ShooterSubsystem {
 
     public boolean isIdle() {
         return targetRPM <= 10;
+    }
+
+    public boolean isActive() {
+        return targetRPM > 1000 || Math.abs(currError) > 100;
     }
 
     public void enableAllTelemetry(OpMode opMode, boolean enableAll) {

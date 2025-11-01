@@ -3,11 +3,7 @@ package org.firstinspires.ftc.teamcode.subsystem;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.paths.HeadingInterpolator;
-import com.pedropathing.paths.Path;
-import com.pedropathing.paths.PathChain;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -19,7 +15,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 import java.util.List;
-import java.util.function.Supplier;
 
 public class DriveSubsystem {
     // Tunable proportional gains for AprilTag alignment
@@ -31,7 +26,6 @@ public class DriveSubsystem {
     public final Follower follower;
     public static Pose startingPose;
     private boolean automatedDrive;
-    private Supplier<PathChain> pathChain;
     private final TelemetryManager telemetryM;
 
     // TELEOP
@@ -51,11 +45,6 @@ public class DriveSubsystem {
     }
 
     public void initTeleOp(Gamepad gamepad1) {
-        pathChain = () -> follower.pathBuilder() //Lazy Curve Generation
-                .addPath(new Path(new BezierLine(follower::getPose, new Pose(45, 98))))
-                .setHeadingInterpolation(HeadingInterpolator.linearFromPoint(follower::getHeading, Math.toRadians(45), 0.8))
-                .build();
-
         this.gamepad = gamepad1;
 
         forwardRamper = new InputRamper();
@@ -66,10 +55,6 @@ public class DriveSubsystem {
     public void initAuto() {
 
     }
-
-    public void followPath(PathChain pathChain) {
-        follower.followPath(pathChain);
-    }
     
     public void start() {
         //The parameter controls whether the Follower should use break mode on the motors (using it is recommended).
@@ -78,7 +63,7 @@ public class DriveSubsystem {
         follower.startTeleopDrive();
     }
     
-    public void runTeleOp() {
+    public void runTeleOp(boolean shooterIsActive) {
         //Call this once per loop
         follower.update();
         telemetryM.update();
@@ -86,7 +71,7 @@ public class DriveSubsystem {
         double leftYInput = forwardRamper.rampInput(gamepad.left_stick_y);
         double leftXInput = strafeRamper.rampInput(gamepad.left_stick_x);
         // Needs to be less sensitive for turning.
-        double rightXInput = turnRamper.rampInput(gamepad.right_stick_x) * 0.6;
+        double rightXInput = turnRamper.rampInput(gamepad.right_stick_x) * (shooterIsActive ? 0.4 : 0.8);
 
         // Last parameter --- True: Robot Centric | False: Field Centric
         follower.setTeleOpDrive(

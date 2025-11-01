@@ -50,7 +50,7 @@ public abstract class AquamarineDrive extends OpMode {
         // Track Loop Time
         loopTimer.reset();
 
-        drive.runTeleOp();
+        drive.runTeleOp(shooter.isActive());
         shooter.runTeleOp(gamepad2);
         intake.runTeleOp(gamepad1);
 
