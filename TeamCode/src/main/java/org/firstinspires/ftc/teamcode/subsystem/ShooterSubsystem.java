@@ -141,8 +141,14 @@ public class ShooterSubsystem {
         targetRPM = rpm;
     }
 
-    public void autoShoot() {
 
+    boolean init = false;
+    public void autoShoot(IntakeSubsystem intake) {
+        if (!init) {
+            init = true;
+        }
+        targetRPM = STATIONARY_RPM_FAR;
+        targetPower = shooterPID();
     }
 
     public boolean isIdle() {

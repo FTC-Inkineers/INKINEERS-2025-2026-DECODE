@@ -19,7 +19,7 @@ public class Constants {
      **/
 
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(15);
+            .mass(9);
 
     public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
 

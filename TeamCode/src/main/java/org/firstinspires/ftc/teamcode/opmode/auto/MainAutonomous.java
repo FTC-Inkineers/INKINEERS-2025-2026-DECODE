@@ -68,7 +68,7 @@ public abstract class MainAutonomous extends OpMode {
             case 1:
                 // State 1: Wait for Path 1 to finish, then shoot
                 if (!drive.follower.isBusy()) {
-                    shooter.autoShoot(); // Assumes a method that handles shooting sequence
+//                    shoot(); // Assumes a method that handles shooting sequence
                     setPathState(2);
                 }
                 break;
@@ -92,61 +92,61 @@ public abstract class MainAutonomous extends OpMode {
 
             case 4:
                 if (!drive.follower.isBusy()) {
-                    shooter.autoShoot();
+//                    shooter.autoShoot();
                     setPathState(5);
                 }
                 break;
 
             case 5:
-                if (shooter.isIdle()) {
-                    intake.setFrontIntake(1);
-                    drive.follower.followPath(paths.Path4, 0.6, true);
-                    setPathState(6);
-                }
+//                if (shooter.isIdle()) {
+//                    intake.setFrontIntake(1);
+//                    drive.follower.followPath(paths.Path4, 0.6, true);
+//                    setPathState(6);
+//                }
                 break;
-
-            case 6:
-                if (!drive.follower.isBusy()) {
-                    intake.stop();
-                    drive.follower.followPath(paths.Path5, true);
-                    setPathState(7);
-                }
-                break;
-
-            case 7:
-                if (!drive.follower.isBusy()) {
-                    shooter.autoShoot();
-                    setPathState(8);
-                }
-                break;
-
-            case 8:
-                if (shooter.isIdle()) {
-                    intake.setFrontIntake(1);
-                    drive.follower.followPath(paths.Path6, 0.6, true);
-                    setPathState(9);
-                }
-                break;
-
-            case 9:
-                if (!drive.follower.isBusy()) {
-                    intake.stop();
-                    drive.follower.followPath(paths.Path7, true);
-                    setPathState(10); // Move to idle state
-                }
-                break;
-
-            case 10:
-                if (!drive.follower.isBusy()) {
-                    shooter.autoShoot();
-                    setPathState(11);
-                }
-
-                break;
-
-            case 11:
-
-                break;
+//
+//            case 6:
+//                if (!drive.follower.isBusy()) {
+//                    intake.stop();
+//                    drive.follower.followPath(paths.Path5, true);
+//                    setPathState(7);
+//                }
+//                break;
+//
+//            case 7:
+//                if (!drive.follower.isBusy()) {
+//                    shooter.autoShoot();
+//                    setPathState(8);
+//                }
+//                break;
+//
+//            case 8:
+//                if (shooter.isIdle()) {
+//                    intake.setFrontIntake(1);
+//                    drive.follower.followPath(paths.Path6, 0.6, true);
+//                    setPathState(9);
+//                }
+//                break;
+//
+//            case 9:
+//                if (!drive.follower.isBusy()) {
+//                    intake.stop();
+//                    drive.follower.followPath(paths.Path7, true);
+//                    setPathState(10); // Move to idle state
+//                }
+//                break;
+//
+//            case 10:
+//                if (!drive.follower.isBusy()) {
+//                    shooter.autoShoot();
+//                    setPathState(11);
+//                }
+//
+//                break;
+//
+//            case 11:
+//
+//                break;
         }
     }
 
@@ -154,5 +154,9 @@ public abstract class MainAutonomous extends OpMode {
     public void setPathState(int pState) {
         pathState = pState;
         pathTimer.reset();
+    }
+
+    public void shoot() {
+        shooter.autoShoot(intake);
     }
 }
