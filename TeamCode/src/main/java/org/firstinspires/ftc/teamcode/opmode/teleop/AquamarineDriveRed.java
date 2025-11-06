@@ -9,4 +9,9 @@ public class AquamarineDriveRed extends AquamarineDrive {
     protected boolean isBlueSide() {
         return false;
     }
+
+    @Override
+    protected boolean useDashboard() {
+        return false;
+    }
 }

@@ -1,37 +1,37 @@
 package org.firstinspires.ftc.teamcode.opmode.teleop;
 
+import com.bylazar.telemetry.PanelsTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.subsystem.ShooterSubsystem;
 
 @TeleOp(name = "Shooter Tester", group = "Testing")
 public class ShooterTester extends OpMode {
 
-    // Subsystems
-    private ShooterSubsystem shooterSubsystem;
+    PanelsTelemetry panels;
 
-    private ElapsedTime loopTimer;
+    private ShooterSubsystem shooterSubsystem;
 
     @Override
     public void init() {
-        // Subsystem Init
         shooterSubsystem = new ShooterSubsystem(hardwareMap);
-        loopTimer = new ElapsedTime();
+        panels = PanelsTelemetry.INSTANCE;
     }
 
     @Override
     public void loop() {
-        // Track Loop Time
-        loopTimer.reset();
-
         shooterSubsystem.runTeleOp(gamepad1);
 
         // Telemetry
         shooterSubsystem.enableAllTelemetry(this, true);
-
-        telemetry.addData("Loop time (ms)", loopTimer.milliseconds());
         telemetry.update();
+
+        try {
+            Thread.sleep(20);
+        } catch (InterruptedException e) {
+            // Restore the interrupted status
+            Thread.currentThread().interrupt();
+        }
     }
 }

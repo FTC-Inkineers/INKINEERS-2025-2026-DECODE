@@ -23,7 +23,7 @@ public abstract class MainAutonomous extends OpMode {
     public void init() {
         drive = new DriveSubsystem(hardwareMap, isBlueSide());
         shooter = new ShooterSubsystem(hardwareMap);
-        intake = new IntakeSubsystem(hardwareMap, isBlueSide());
+        intake = new IntakeSubsystem(hardwareMap);
         paths = new Paths(drive.follower, isBlueSide());
 
         drive.initAuto();

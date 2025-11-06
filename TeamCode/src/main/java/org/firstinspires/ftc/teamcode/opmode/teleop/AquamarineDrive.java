@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode.opmode.teleop;
 
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
-import com.bylazar.telemetry.PanelsTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -16,11 +15,11 @@ public abstract class AquamarineDrive extends OpMode {
     protected ShooterSubsystem shooter;
     protected IntakeSubsystem intake;
     protected FtcDashboard dashboard;
-    protected PanelsTelemetry panels;
 
-    private ElapsedTime loopTimer;
+    protected ElapsedTime loopTimer;
 
     protected abstract boolean isBlueSide();
+    protected abstract boolean useDashboard();
 
     // Telemetry Choices
     public static boolean allDriveTelemetry = true;
@@ -31,14 +30,14 @@ public abstract class AquamarineDrive extends OpMode {
     public void init() {
         drive = new DriveSubsystem(hardwareMap, isBlueSide());
         shooter = new ShooterSubsystem(hardwareMap);
-        intake = new IntakeSubsystem(hardwareMap, isBlueSide());
-        dashboard = FtcDashboard.getInstance();
-        telemetry = dashboard.getTelemetry();
-        panels = PanelsTelemetry.INSTANCE;
+        intake = new IntakeSubsystem(hardwareMap);
+        if (useDashboard()) {
+            dashboard = FtcDashboard.getInstance();
+            telemetry = dashboard.getTelemetry();
+        }
 
 
         drive.initTeleOp(gamepad1);
-
         loopTimer = new ElapsedTime();
     }
     @Override
@@ -58,8 +57,8 @@ public abstract class AquamarineDrive extends OpMode {
         drive.enableAllTelemetry(this, allDriveTelemetry);
         shooter.enableAllTelemetry(this, allShooterTelemetry);
         intake.enableAllTelemetry(this, allIntakeTelemetry);
-        panels.getTelemetry().addData("Target RPM", shooter.getTargetRPM());
-        panels.getTelemetry().addData("Shooter RPM", shooter.getCurrentRPM());
+        telemetry.addData("Target RPM", shooter.getTargetRPM());
+        telemetry.addData("Shooter RPM", shooter.getCurrentRPM());
 
         telemetry.addData("Loop time (ms)", loopTimer.milliseconds());
         telemetry.update();
