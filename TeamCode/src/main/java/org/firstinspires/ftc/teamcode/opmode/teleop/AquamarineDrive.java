@@ -37,7 +37,7 @@ public abstract class AquamarineDrive extends OpMode {
         }
 
 
-        drive.initTeleOp(gamepad1);
+        drive.initTeleOp(gamepad1, gamepad2);
         loopTimer = new ElapsedTime();
     }
     @Override

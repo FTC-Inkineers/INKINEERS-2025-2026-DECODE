@@ -18,9 +18,13 @@ import java.util.List;
 
 public class DriveSubsystem {
     // Tunable proportional gains for AprilTag alignment
-    private static final double kDrive = 0.02;     // Forward/backward
-    private static final double kStrafe = 0.02;    // Left/right
-    private static final double kTurn = 0.02;      // Rotation
+    private static final double kP_drive = 0.02, kD_drive = 0.00;       // Forward/backward
+    private static final double kP_strafe = 0.02, kD_strafe = 0.00;     // Left/right
+    private static final double kP_turn = 0.02, kD_turn = 0.00;         // Turn
+
+    private final FPIDController driveController = new FPIDController.Builder(kP_drive).withD(kD_drive).build();
+    private final FPIDController strafeController = new FPIDController.Builder(kP_strafe).withD(kD_strafe).build();
+    private final FPIDController turnController = new FPIDController.Builder(kP_turn).withD(kD_turn).build();
     
     // PEDRO PATHING
     public final Follower follower;
@@ -29,8 +33,9 @@ public class DriveSubsystem {
     private final TelemetryManager telemetryM;
 
     // TELEOP
-    private Gamepad gamepad;
-    ComputerVision CV;
+    private Gamepad gamepad1;
+    private Gamepad gamepad2;
+    private final ComputerVision CV;
 
     InputRamper forwardRamper, strafeRamper, turnRamper;
 
@@ -44,8 +49,9 @@ public class DriveSubsystem {
         CV = new ComputerVision(hardwareMap);
     }
 
-    public void initTeleOp(Gamepad gamepad1) {
-        this.gamepad = gamepad1;
+    public void initTeleOp(Gamepad gamepad1, Gamepad gamepad2) {
+        this.gamepad1 = gamepad1;
+        this.gamepad2 = gamepad2;
 
         forwardRamper = new InputRamper();
         strafeRamper = new InputRamper();
@@ -62,37 +68,49 @@ public class DriveSubsystem {
         //If you don't pass anything in, it uses the default (false)
         follower.startTeleopDrive();
     }
-    
+
+    private boolean lockedOn = false;
     public void runTeleOp(boolean shooterIsActive) {
         //Call this once per loop
         follower.update();
         telemetryM.update();
 
-        double leftYInput = forwardRamper.rampInput(gamepad.left_stick_y);
-        double leftXInput = strafeRamper.rampInput(gamepad.left_stick_x);
-        // Needs to be less sensitive for turning.
-        double rightXInput = turnRamper.rampInput(gamepad.right_stick_x) * (shooterIsActive ? 0.4 : 0.8);
+        // Hold Y to align
+        if (gamepad1.y || gamepad2.y) {
+            automatedDrive = alignToAprilTag(CV.getLLResult());
+        }
+        // Lock on to goal (toggle).
+        if (gamepad1.yWasReleased() || gamepad2.yWasReleased()) {
+            lockedOn = !lockedOn;
+        }
+
+        double leftYInput = forwardRamper.rampInput(gamepad1.left_stick_y);
+        double leftXInput = strafeRamper.rampInput(gamepad1.left_stick_x);
+        double rightXInput;
+
+        if (lockedOn) {
+            // Auto-align.
+            rightXInput = getAprilTagTurnCommand();
+        } else {
+            // Needs to be less sensitive for turning.
+            rightXInput = turnRamper.rampInput(gamepad1.right_stick_x) * (shooterIsActive ? 0.4 : 0.8);
+        }
 
         // Last parameter --- True: Robot Centric | False: Field Centric
         follower.setTeleOpDrive(
                 -leftYInput, // Forward
                 -leftXInput, // Strafe
                 -rightXInput, // Turn
-                automatedDrive // Field Centric
+                automatedDrive // Field Centric when lockedOn
         );
 
         // Reset Pose
-        if (gamepad.backWasPressed()) {
+        if (gamepad1.backWasPressed()) {
             follower.setPose(new Pose(0, 0, 0));
         }
 
-        // Hold Y to align
-        if (gamepad.y) {
-            automatedDrive = alignToAprilTag(CV.getLLResult());
-        }
-
         //Stop automated following if the follower is done
-        if (automatedDrive && (gamepad.bWasPressed() || !follower.isBusy())) {
+        if (automatedDrive && (gamepad1.bWasPressed() || !follower.isBusy())) {
             follower.startTeleopDrive();
             automatedDrive = false;
         }
@@ -105,7 +123,7 @@ public class DriveSubsystem {
             opMode.telemetry.addData("velocity", follower.getVelocity());
         }
         opMode.telemetry.addData("automatedDrive", automatedDrive);
-
+        opMode.telemetry.addData("lockedOn", lockedOn);
     }
 
     /** @noinspection FieldCanBeLocal*/
@@ -144,24 +162,70 @@ public class DriveSubsystem {
         }
     }
 
-    public boolean alignToPose(double x, double y, double z, double targetDistance) {
-        double xError = x - targetDistance;     // Positive = too far
+    private double getAprilTagTurnCommand() {
+        LLResult result = CV.getLLResult();
+        List<LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
+        LLResultTypes.FiducialResult tagPose = null;
 
-        // Calculate movement commands
-        double drive = xError * kDrive;
-        double strafe = y * kStrafe;
-        double turn = z * kTurn;
+        if (fiducials.isEmpty()) {
+            telemetryM.debug("LockOn", "No tags detected");
+            return 0.0; // Stop turning if no tags are visible
+        }
+
+        // Find the largest AprilTag in the list
+        for (LLResultTypes.FiducialResult fiducial : fiducials) {
+            if (tagPose == null || fiducial.getTargetArea() > tagPose.getTargetArea()) {
+                tagPose = fiducial;
+            }
+        }
+
+        if (tagPose == null) {
+            turnController.reset();
+            return 0.0;
+        }
+
+        // Error is yaw.
+        double currentError = tagPose.getCameraPoseTargetSpace().getPosition().z;
+        FPIDOutput turnOutput = turnController.calculate(currentError);
+        double turn = turnOutput.total;
+
+        // Clamp speed
+        turn = Math.max(-0.4, Math.min(0.4, turn));
+
+        telemetryM.debug("LockOn", "yawErr: %.2f", currentError);
+        telemetryM.debug("LockOnPID", "P: %.2f, I: %.2f, D: %.2f, Total: %.2f",
+                turnOutput.p, turnOutput.i, turnOutput.d, turn);
+
+        return turn;
+    }
+
+    public boolean alignToPose(double x, double y, double z, double targetDistance) {
+        double xError = x - targetDistance; // Positive = too far
+
+        // Calculate movement commands and get full PID output for each
+        FPIDOutput driveOutput = driveController.calculate(xError);
+        FPIDOutput strafeOutput = strafeController.calculate(y);
+        FPIDOutput turnOutput = turnController.calculate(z);
+
+        double drive = driveOutput.total;
+        double strafe = strafeOutput.total;
+        double turn = turnOutput.total;
 
         // Clamp speeds at 0.4 max/min
         drive = Math.max(-0.4, Math.min(0.4, drive));
         strafe = Math.max(-0.4, Math.min(0.4, strafe));
         turn = Math.max(-0.4, Math.min(0.4, turn));
 
-        // Apply movement through Pedro follower
         follower.setTeleOpDrive(-drive, -strafe, -turn, true);
 
-        telemetryM.debug("AlignToAprilTag", "xErr: %.2f, yErr: %.2f, yawErr: %.2f", xError, y, z);
-        telemetryM.debug("DriveCmds", "f: %.2f, s: %.2f, t: %.2f", drive, strafe, turn);
+        // DETAILED TELEMETRY
+        telemetryM.debug("AlignErrors", "xErr: %.2f, yErr: %.2f, yawErr: %.2f", xError, y, z);
+        telemetryM.debug("DrivePID", "P: %.2f, I: %.2f, D: %.2f, Total: %.2f",
+                driveOutput.p, driveOutput.i, driveOutput.d, drive);
+        telemetryM.debug("StrafePID", "P: %.2f, I: %.2f, D: %.2f, Total: %.2f",
+                strafeOutput.p, strafeOutput.i, strafeOutput.d, strafe);
+        telemetryM.debug("TurnPID", "P: %.2f, I: %.2f, D: %.2f, Total: %.2f",
+                turnOutput.p, turnOutput.i, turnOutput.d, turn);
 
         // Determine if alignment is done
         boolean aligned = Math.abs(xError) < 1.0 && Math.abs(y) < 1.0 && Math.abs(z) < 2.0;
@@ -184,7 +248,11 @@ public class DriveSubsystem {
         if (fiducials.isEmpty()) {
             follower.setTeleOpDrive(0, 0, 0, true);
             telemetryM.debug("AlignToAprilTag", "No tags detected");
-            return false; // No tags to align to
+            // Reset all controllers when alignment stops or loses the tag
+            driveController.reset();
+            strafeController.reset();
+            turnController.reset();
+            return false;
         }
 
         // Find the largest AprilTag in the list
@@ -192,12 +260,6 @@ public class DriveSubsystem {
             if (tagPose == null || fiducial.getTargetArea() > tagPose.getTargetArea()) {
                 tagPose = fiducial;
             }
-        }
-
-        // It's good practice to ensure aprilTag is not null before using it,
-        // though the initial check for an empty list should prevent this.
-        if (tagPose == null) {
-            return false;
         }
 
         // Error terms. Pitch, roll, and yaw, respectively.

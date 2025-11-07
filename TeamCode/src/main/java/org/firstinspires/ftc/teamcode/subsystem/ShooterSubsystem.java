@@ -22,6 +22,8 @@ public class ShooterSubsystem {
     private double STATIONARY_RPM_FAR = 3500;
     private double STATIONARY_RPM_CLOSE = 2800;
 
+    private final FPIDController shooterController;
+
     public static double triggerPower = 0.92;
 
     // Configurable in FTC Dashboard
@@ -49,6 +51,8 @@ public class ShooterSubsystem {
 
         triggerTimer.reset();
         shooterTimer.reset();
+
+        shooterController = new FPIDController.Builder(kP).withF(kF).withD(kD).build();
     }
 
     // RPM PID
@@ -69,24 +73,19 @@ public class ShooterSubsystem {
         return filteredRPM;
     }
 
-    private double prevError;
-    private double currError;
-    public double shooterPID() {
-        currError = targetRPM - getCurrentRPM();
-        if (Math.abs(currError) <= RPM_TOLERANCE) {
-            currError = 0;
+    private double error;
+    public void updateShooterPower() {
+        double currentRPM = getCurrentRPM();
+        error = targetRPM - currentRPM;
+
+        if (Math.abs(error) <= RPM_TOLERANCE) {
+            // You can optionally treat small errors as zero, but often it's better to let PID handle it.
+            // For now, we'll keep it simple.
         }
 
-        double f = kF * targetRPM;
-        double p = currError * kP;
-        double d = 0;
-        if (shooterTimer.seconds() > 0)
-            d = kD * (currError - prevError) / (shooterTimer.seconds());
-
-        prevError = currError;
-        shooterTimer.reset();
-
-        return f + p + d;
+        // Calculate power using the controller. Pass both the error and the target (for kF).
+        FPIDOutput output = shooterController.calculate(error, targetRPM);
+        targetPower = output.total;
     }
 
     public void runTeleOp(Gamepad gamepad) {
@@ -120,10 +119,14 @@ public class ShooterSubsystem {
                 targetRPM = STATIONARY_RPM_CLOSE;
 
             targetRPM = Math.max(0, Math.min(MAX_RPM, targetRPM));
-            targetPower = shooterPID();
+            updateShooterPower();
         } else if (getCurrentRPM() > 0) {
             targetRPM = 0;
             targetPower -= 0.025;
+            shooterController.reset();
+        } else {
+            targetRPM = 0;
+            targetPower = 0;
         }
 
         // final power limits.
@@ -148,7 +151,7 @@ public class ShooterSubsystem {
             init = true;
         }
         targetRPM = STATIONARY_RPM_FAR;
-        targetPower = shooterPID();
+        updateShooterPower();
     }
 
     public boolean isIdle() {
@@ -156,7 +159,7 @@ public class ShooterSubsystem {
     }
 
     public boolean isActive() {
-        return targetRPM > 1000 || Math.abs(currError) > 100;
+        return targetRPM > 1000 || Math.abs(error) > 100;
     }
 
     public void enableAllTelemetry(OpMode opMode, boolean enableAll) {
@@ -169,6 +172,7 @@ public class ShooterSubsystem {
         }
         opMode.telemetry.addData("Current Target RPM:", getTargetRPM());
         opMode.telemetry.addData("Current RPM:", getCurrentRPM());
+        opMode.telemetry.addData("Current Error:", error);
         opMode.telemetry.addData("Shooter PID", targetPower);
     }
 
