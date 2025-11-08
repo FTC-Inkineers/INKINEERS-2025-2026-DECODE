@@ -3,20 +3,16 @@ package org.firstinspires.ftc.teamcode.subsystem;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class FPIDController {
-    private final double kF;
-    private final double kP;
-    private final double kI;
-    private final double kD;
+    private double kF;
+    private double kP;
+    private double kI;
+    private double kD;
 
     // State variables
     private final ElapsedTime timer = new ElapsedTime();
     private double lastError = 0;
     private double integralSum = 0;
 
-    /**
-     * Private constructor that takes the Builder as an argument.
-     * This is the only way to create an FPIDController instance.
-     */
     private FPIDController(Builder builder) {
         this.kP = builder.kP;
         this.kI = builder.kI;
@@ -52,13 +48,24 @@ public class FPIDController {
             return this;
         }
 
-        /**
-         * Creates and returns a new FPIDController instance with the configured gains.
-         * @return A new FPIDController.
-         */
+        // Creates and returns a new FPIDController instance with the configured gains.
         public FPIDController build() {
             return new FPIDController(this);
         }
+    }
+
+    /**
+     * Allows dynamic updating of FPID gains.
+     * @param kF The new Feedforward gain.
+     * @param kP The new Proportional gain.
+     * @param kI The new Integral gain.
+     * @param kD The new Derivative gain.
+     */
+    public void setGains(double kF, double kP, double kI, double kD) {
+        this.kF = kF;
+        this.kP = kP;
+        this.kI = kI;
+        this.kD = kD;
     }
 
     /**

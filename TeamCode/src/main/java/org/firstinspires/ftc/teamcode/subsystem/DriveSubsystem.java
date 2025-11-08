@@ -71,9 +71,12 @@ public class DriveSubsystem {
 
     private boolean lockedOn = false;
     public void runTeleOp(boolean shooterIsActive) {
-        //Call this once per loop
+        // Call this once per loop
         follower.update();
         telemetryM.update();
+        driveController.setGains(0, kP_drive, 0, kD_drive);
+        strafeController.setGains(0, kP_strafe, 0, kD_strafe);
+        turnController.setGains(0, kP_turn, 0, kD_turn);
 
         // Hold Y to align
         if (gamepad1.y || gamepad2.y) {

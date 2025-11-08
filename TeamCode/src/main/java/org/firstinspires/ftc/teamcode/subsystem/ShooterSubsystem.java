@@ -33,6 +33,7 @@ public class ShooterSubsystem {
     // Configurable in FTC Dashboard
     public static double kF = 0.78/3514.0; // Motor Power / RPM | 0.78 / 3514 RPM
     public static double kP = 0.01;
+    public static double kI = 0.0;
     public static double kD = 0.0008;
     public static double RPM_TOLERANCE = 40;
     // A lower value means more smoothing but more lag. Try a value between 0.1 and 0.3.
@@ -93,6 +94,8 @@ public class ShooterSubsystem {
     private double hoodPosition = HOOD_MAX_RETRACT;
 
     public void runTeleOp(Gamepad gamepad) {
+        // Ensure changes from FTC Dashboard are always applied.
+        shooterController.setGains(kF, kP, kI, kD);
 
         // Trigger Control
         if (gamepad.aWasPressed()) {
