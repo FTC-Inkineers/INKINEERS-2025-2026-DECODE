@@ -90,13 +90,16 @@ public class ShooterSubsystem {
         targetPower = output.total;
     }
 
-    // Hood Servo Position
-    private double hoodPosition = HOOD_MAX_RETRACT;
-
     public void runTeleOp(Gamepad gamepad) {
         // Ensure changes from FTC Dashboard are always applied.
         shooterController.setGains(kF, kP, kI, kD);
 
+        runTrigger(gamepad);
+        runShooter(gamepad);
+        runHood(gamepad);
+    }
+
+    public void runTrigger(Gamepad gamepad) {
         // Trigger Control
         if (gamepad.aWasPressed()) {
             triggerTimer.reset();
@@ -110,7 +113,9 @@ public class ShooterSubsystem {
             releaseTrigger();
             shooterMessage = "idle";
         }
+    }
 
+    public void runShooter(Gamepad gamepad) {
         // Adjust Target RPM
         if (gamepad.dpadUpWasPressed()) {
             STATIONARY_RPM_FAR += 100;
@@ -118,7 +123,7 @@ public class ShooterSubsystem {
             STATIONARY_RPM_FAR -= 100;
         }
 
-        // Shooter (flywheel) Control
+        // Shooter (Flywheel) Control
         if (gamepad.right_trigger > 0 || gamepad.left_trigger > 0) {
             if (gamepad.right_trigger > 0)
                 targetRPM = STATIONARY_RPM_FAR;
@@ -138,7 +143,9 @@ public class ShooterSubsystem {
 
         targetPower = Math.min(1.0, Math.max(0.0, targetPower));
         shooterMotor.setPower(targetPower);
+    }
 
+    public void runHood(Gamepad gamepad) {
         // Hood Control
         if (gamepad.right_bumper) {
             hoodPosition += 0.1;
@@ -149,8 +156,13 @@ public class ShooterSubsystem {
         hoodServo.setPosition(hoodPosition);
     }
 
-    public void runAuto() {
+    private double hoodPosition = HOOD_MAX_RETRACT;
 
+    // --- AUTONOMOUS ---
+    // --- AUTONOMOUS ---
+    // --- AUTONOMOUS ---
+
+    public void runAuto() {
         targetPower = Math.min(1.0, Math.max(0.0, targetPower));
         shooterMotor.setPower(targetPower);
     }
