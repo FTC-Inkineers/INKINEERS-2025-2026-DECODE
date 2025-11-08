@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmode.teleop;
 
-import com.bylazar.telemetry.PanelsTelemetry;
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -9,14 +9,14 @@ import org.firstinspires.ftc.teamcode.subsystem.ShooterSubsystem;
 @TeleOp(name = "Shooter Tester", group = "Testing")
 public class ShooterTester extends OpMode {
 
-    PanelsTelemetry panels;
+    FtcDashboard dashboard = FtcDashboard.getInstance();
 
     private ShooterSubsystem shooterSubsystem;
 
     @Override
     public void init() {
         shooterSubsystem = new ShooterSubsystem(hardwareMap);
-        panels = PanelsTelemetry.INSTANCE;
+        telemetry = dashboard.getTelemetry();
     }
 
     @Override
@@ -24,7 +24,7 @@ public class ShooterTester extends OpMode {
         shooterSubsystem.runTeleOp(gamepad1);
 
         // Telemetry
-        shooterSubsystem.enableAllTelemetry(this, true);
+        shooterSubsystem.enableAllTelemetry(telemetry, true);
         telemetry.update();
 
         try {

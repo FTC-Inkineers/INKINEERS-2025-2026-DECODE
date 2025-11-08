@@ -1,9 +1,10 @@
 package org.firstinspires.ftc.teamcode.subsystem;
 
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class IntakeSubsystem {
 
@@ -107,10 +108,10 @@ public class IntakeSubsystem {
         frontIntake.setPower(0);
     }
 
-    public void enableAllTelemetry(OpMode opMode, boolean enableAll) {
-        opMode.telemetry.addLine("\\ INTAKE SUBSYSTEM //");
+    public void enableAllTelemetry(Telemetry telemetry, boolean enableAll) {
+        telemetry.addLine("\\ INTAKE SUBSYSTEM //");
         if (enableAll) {
-            opMode.telemetry.addData("Intake Power", getIntakePower());
+            telemetry.addData("Intake Power", getIntakePower());
         }
     }
 

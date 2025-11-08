@@ -52,8 +52,8 @@ public abstract class MainAutonomous extends OpMode {
         telemetry.addData("path state", pathState);
         telemetry.addData("Opmode Time", opmodeTimer.toString());
         telemetry.addData("Path Timer", pathTimer.toString());
-        drive.enableAllTelemetry(this, true);
-        shooter.enableAllTelemetry(this, false);
+        drive.enableAllTelemetry(telemetry, true);
+        shooter.enableAllTelemetry(telemetry, false);
         telemetry.update();
     }
 

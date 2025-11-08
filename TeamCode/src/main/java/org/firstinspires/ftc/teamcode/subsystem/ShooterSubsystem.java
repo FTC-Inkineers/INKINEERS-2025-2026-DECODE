@@ -1,26 +1,30 @@
 package org.firstinspires.ftc.teamcode.subsystem;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 /** @noinspection FieldCanBeLocal*/
 @Config
 public class ShooterSubsystem {
     private final DcMotorEx shooterMotor; // 6000 RPM YellowJacket Motor
     private final DcMotor triggerMotor;
-    private final CRServo hoodServo;
+    private final Servo hoodServo;
 
     private final int SHOOTER_TICKS_PER_REV = 28;
     private final double MAX_RPM = 6000;
     private double STATIONARY_RPM_FAR = 3500;
-    private double STATIONARY_RPM_CLOSE = 2800;
+    private final double STATIONARY_RPM_CLOSE = 2800;
+
+    private final double HOOD_MAX_EXTEND = 1;
+    private final double HOOD_MAX_RETRACT = 0.5;
 
     private final FPIDController shooterController;
 
@@ -31,10 +35,8 @@ public class ShooterSubsystem {
     public static double kP = 0.01;
     public static double kD = 0.0008;
     public static double RPM_TOLERANCE = 40;
-    // Smoothing coefficient (alpha) for the Exponential Moving Average filter.
     // A lower value means more smoothing but more lag. Try a value between 0.1 and 0.3.
     public static double SMOOTHING_ALPHA = 0.1;
-
 
     private final ElapsedTime triggerTimer = new ElapsedTime();
     private final ElapsedTime shooterTimer = new ElapsedTime();
@@ -43,7 +45,7 @@ public class ShooterSubsystem {
     public ShooterSubsystem(HardwareMap hardwareMap) {
         shooterMotor = hardwareMap.get(DcMotorEx.class, "shooterMotor");
         triggerMotor = hardwareMap.get(DcMotor.class, "triggerMotor");
-        hoodServo = hardwareMap.get(CRServo.class, "hoodServo");
+        hoodServo = hardwareMap.get(Servo.class, "hoodServo");
 
         shooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         shooterMotor.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -62,12 +64,11 @@ public class ShooterSubsystem {
     // Variable to hold the previously calculated, filtered RPM.
     private double lastFilteredRPM = 0.0;
     public double getCurrentRPM() {
-        // 1. Calculate the raw, instantaneous RPM
         double rawRPM = shooterMotor.getVelocity() / SHOOTER_TICKS_PER_REV * 60;
-        // 2. Apply the Exponential Moving Average (EMA) Filter
-        double filteredRPM = (SMOOTHING_ALPHA * rawRPM) +
-                ((1.0 - SMOOTHING_ALPHA) * lastFilteredRPM);
-        // 3. Update the stored value for the next loop iteration
+
+        // Apply the Exponential Moving Average (EMA) Filter
+        double filteredRPM = (SMOOTHING_ALPHA * rawRPM) + ((1.0 - SMOOTHING_ALPHA) * lastFilteredRPM);
+
         lastFilteredRPM = filteredRPM;
 
         return filteredRPM;
@@ -88,9 +89,12 @@ public class ShooterSubsystem {
         targetPower = output.total;
     }
 
+    // Hood Servo Position
+    private double hoodPosition = HOOD_MAX_RETRACT;
+
     public void runTeleOp(Gamepad gamepad) {
 
-        // Control Logic
+        // Trigger Control
         if (gamepad.aWasPressed()) {
             triggerTimer.reset();
         } else if (gamepad.b) {
@@ -104,18 +108,18 @@ public class ShooterSubsystem {
             shooterMessage = "idle";
         }
 
-        // Adjust
+        // Adjust Target RPM
         if (gamepad.dpadUpWasPressed()) {
             STATIONARY_RPM_FAR += 100;
         } else if (gamepad.dpadDownWasPressed()) {
             STATIONARY_RPM_FAR -= 100;
         }
 
-
-        if (gamepad.right_bumper || gamepad.left_bumper) {
-            if (gamepad.right_bumper)
+        // Shooter (flywheel) Control
+        if (gamepad.right_trigger > 0 || gamepad.left_trigger > 0) {
+            if (gamepad.right_trigger > 0)
                 targetRPM = STATIONARY_RPM_FAR;
-            else if (gamepad.left_bumper)
+            else if (gamepad.left_trigger > 0)
                 targetRPM = STATIONARY_RPM_CLOSE;
 
             targetRPM = Math.max(0, Math.min(MAX_RPM, targetRPM));
@@ -129,9 +133,17 @@ public class ShooterSubsystem {
             targetPower = 0;
         }
 
-        // final power limits.
         targetPower = Math.min(1.0, Math.max(0.0, targetPower));
         shooterMotor.setPower(targetPower);
+
+        // Hood Control
+        if (gamepad.right_bumper) {
+            hoodPosition += 0.1;
+        } else if (gamepad.left_bumper) {
+            hoodPosition -= 0.1;
+        }
+        hoodPosition = Math.max(HOOD_MAX_RETRACT, Math.min(HOOD_MAX_EXTEND, hoodPosition));
+        hoodServo.setPosition(hoodPosition);
     }
 
     public void runAuto() {
@@ -140,17 +152,14 @@ public class ShooterSubsystem {
         shooterMotor.setPower(targetPower);
     }
 
-    public void setTargetRPM(double rpm) {
-        targetRPM = rpm;
-    }
-
-
     boolean init = false;
     public void autoShoot(IntakeSubsystem intake) {
         if (!init) {
             init = true;
         }
         targetRPM = STATIONARY_RPM_FAR;
+        intake.setFrontIntake(1);
+        intake.setBackIntake(0.4);
         updateShooterPower();
     }
 
@@ -162,18 +171,18 @@ public class ShooterSubsystem {
         return targetRPM > 1000 || Math.abs(error) > 100;
     }
 
-    public void enableAllTelemetry(OpMode opMode, boolean enableAll) {
-        opMode.telemetry.addLine("\\ SHOOTER SUBSYSTEM //");
+    public void enableAllTelemetry(Telemetry telemetry, boolean enableAll) {
+        telemetry.addLine("\\ SHOOTER SUBSYSTEM //");
         if (enableAll) {
-            opMode.telemetry.addData("Shooter Message", shooterMessage());
-            opMode.telemetry.addData("Trigger Time", getTimerSeconds());
-            opMode.telemetry.addLine();
-            opMode.telemetry.addData("Stationary RPM", getStationaryRPM());
+            telemetry.addData("Shooter Message", shooterMessage());
+            telemetry.addData("Trigger Time", getTimerSeconds());
+            telemetry.addLine();
+            telemetry.addData("Stationary RPM", getStationaryRPM());
         }
-        opMode.telemetry.addData("Current Target RPM:", getTargetRPM());
-        opMode.telemetry.addData("Current RPM:", getCurrentRPM());
-        opMode.telemetry.addData("Current Error:", error);
-        opMode.telemetry.addData("Shooter PID", targetPower);
+        telemetry.addData("Current Target RPM:", getTargetRPM());
+        telemetry.addData("Current RPM:", getCurrentRPM());
+        telemetry.addData("Current Error:", error);
+        telemetry.addData("Shooter PID", targetPower);
     }
 
     public double testPower = 0.5;

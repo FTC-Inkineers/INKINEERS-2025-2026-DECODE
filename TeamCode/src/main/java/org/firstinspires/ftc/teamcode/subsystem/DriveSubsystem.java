@@ -6,11 +6,11 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
@@ -116,14 +116,14 @@ public class DriveSubsystem {
         }
     }
 
-    public void enableAllTelemetry(OpMode opMode, boolean enableAll) {
-        opMode.telemetry.addLine("\\ DRIVE //");
+    public void enableAllTelemetry(Telemetry telemetry, boolean enableAll) {
+        telemetry.addLine("\\ DRIVE //");
         if (enableAll) {
-            opMode.telemetry.addData("position", follower.getPose());
-            opMode.telemetry.addData("velocity", follower.getVelocity());
+            telemetry.addData("position", follower.getPose());
+            telemetry.addData("velocity", follower.getVelocity());
         }
-        opMode.telemetry.addData("automatedDrive", automatedDrive);
-        opMode.telemetry.addData("lockedOn", lockedOn);
+        telemetry.addData("automatedDrive", automatedDrive);
+        telemetry.addData("lockedOn", lockedOn);
     }
 
     /** @noinspection FieldCanBeLocal*/
