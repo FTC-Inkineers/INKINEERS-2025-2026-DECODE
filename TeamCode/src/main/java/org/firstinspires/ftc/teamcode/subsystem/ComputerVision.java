@@ -11,62 +11,59 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import java.util.List;
 
 public class ComputerVision {
+    // Alliance-specific AprilTag IDs
+    private static final int BLUE_BACKDROP_ID = 20;
+    private static final int RED_BACKDROP_ID = 21;
+
     private final Limelight3A limelight;
     private LLResult latestResult;
+    private final int targetTagId;
 
-    public ComputerVision(HardwareMap hardwareMap) {
+    public ComputerVision(HardwareMap hardwareMap, boolean isBlueSide) {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.setPollRateHz(100);
         limelight.start();
 
         // April Tag Pipeline
         limelight.pipelineSwitch(1);
+
+        // Set the target ID based on the alliance color passed in
+        this.targetTagId = isBlueSide ? BLUE_BACKDROP_ID : RED_BACKDROP_ID;
     }
 
     public void update() {
         latestResult = limelight.getLatestResult();
     }
 
-    public LLResult getLLResult() {
-        return latestResult;
-    }
-
     /**
-     * Finds and returns the largest (closest) AprilTag detected in the latest result.
-     * @return The FiducialResult of the largest tag, or null if no tags are detected.
+     * Finds and returns the specified alliance AprilTag from the latest result.
+     * @return The FiducialResult of the target tag, or null if it's not detected.
      */
-    public LLResultTypes.FiducialResult getLargestTag() {
+    public LLResultTypes.FiducialResult getTargetTag() {
         if (latestResult == null || latestResult.getFiducialResults().isEmpty()) {
             return null;
         }
 
         List<LLResultTypes.FiducialResult> fiducials = latestResult.getFiducialResults();
-        LLResultTypes.FiducialResult largestTag = null;
 
         for (LLResultTypes.FiducialResult fiducial : fiducials) {
-            if (largestTag == null || fiducial.getTargetArea() > largestTag.getTargetArea()) {
-                largestTag = fiducial;
+            if (fiducial.getFiducialId() == targetTagId) {
+                return fiducial; // Return the first match with the correct ID
             }
-        }
-        return largestTag;
-    }
-
-    public Pose3D getLargestTagPose() {
-        LLResultTypes.FiducialResult largestTag = getLargestTag();
-        if (largestTag != null) {
-            // Use Camera Pose Targe tSpace
-            return largestTag.getCameraPoseTargetSpace();
         }
         return null;
     }
 
     public void sendTelemetry(Telemetry telemetry) {
         telemetry.addLine("\\\\ LIMELIGHT //");
-        LLResultTypes.FiducialResult largestTag = getLargestTag();
+        telemetry.addData("Targeting Tag ID", targetTagId);
+        LLResultTypes.FiducialResult targetTag = getTargetTag();
 
-        if (largestTag != null) {
-            telemetry.addData("Tag Found", "ID: %d, Area: %.2f", largestTag.getFiducialId(), largestTag.getTargetArea());
-            Pose3D tagPose = largestTag.getCameraPoseTargetSpace();
+        if (targetTag != null) {
+            telemetry.addData("Tag Found", "ID: %d, Area: %.2f", targetTag.getFiducialId(), targetTag.getTargetArea());
+            telemetry.addData("Tag X degrees", targetTag.getTargetXDegrees());
+            telemetry.addData("Tag Y degrees", targetTag.getTargetYDegrees());
+            Pose3D tagPose = targetTag.getCameraPoseTargetSpace();
             telemetry.addData("Pose (X, Y, Z)", "%.2f, %.2f, %.2f",
                     tagPose.getPosition().x, tagPose.getPosition().y, tagPose.getPosition().z);
         } else {

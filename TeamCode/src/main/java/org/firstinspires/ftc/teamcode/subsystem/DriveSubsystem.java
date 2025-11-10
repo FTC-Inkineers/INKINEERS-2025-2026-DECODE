@@ -4,19 +4,19 @@ import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 public class DriveSubsystem {
     // Tunable proportional gains for AprilTag alignment
-    private static final double kP_drive = 0.02, kD_drive = 0.00;       // Forward/backward
-    private static final double kP_strafe = 0.02, kD_strafe = 0.00;     // Left/right
-    private static final double kP_turn = 0.02, kD_turn = 0.00;         // Turn
+    private static final double kP_drive = 0.06, kD_drive = 0.00;       // Forward/backward
+    private static final double kP_strafe = 0.06, kD_strafe = 0.00;     // Left/right
+    private static final double kP_turn = 0.06, kD_turn = 0.00;         // Turn
 
     private final FPIDController driveController = new FPIDController.Builder(kP_drive).withD(kD_drive).build();
     private final FPIDController strafeController = new FPIDController.Builder(kP_strafe).withD(kD_strafe).build();
@@ -25,8 +25,10 @@ public class DriveSubsystem {
     // PEDRO PATHING
     public final Follower follower;
     public static Pose startingPose;
-    private boolean automatedDrive;
     private final TelemetryManager telemetryM;
+
+    // Fields for Hold Position Logic
+    private Pose holdPositionTarget;
 
     // TELEOP
     private Gamepad gamepad1;
@@ -34,6 +36,14 @@ public class DriveSubsystem {
     private final ComputerVision CV;
 
     InputRamper forwardRamper, strafeRamper, turnRamper;
+    
+    public enum DriveState {
+        MANUAL,
+        MANUAL_AIM_ASSIST,
+        HOLD_POSITION
+    }
+    
+    DriveState driveState;
 
     public DriveSubsystem(HardwareMap hardwareMap, boolean isBlueSide) {
 
@@ -42,7 +52,7 @@ public class DriveSubsystem {
         follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 
-        CV = new ComputerVision(hardwareMap);
+        CV = new ComputerVision(hardwareMap, isBlueSide);
     }
 
     public void initTeleOp(Gamepad gamepad1, Gamepad gamepad2) {
@@ -52,6 +62,8 @@ public class DriveSubsystem {
         forwardRamper = new InputRamper();
         strafeRamper = new InputRamper();
         turnRamper = new InputRamper();
+        
+        driveState = DriveState.MANUAL;
     }
 
     public void initAuto() {
@@ -65,59 +77,83 @@ public class DriveSubsystem {
         follower.startTeleopDrive();
     }
 
-    private boolean lockedOn = false;
-    public void runTeleOp(boolean shooterIsActive) {
-        // Call this once per loop
+    private void updateSystems() {
         follower.update();
         CV.update();
         telemetryM.update();
+        
+        // Update PID Gains Live
         driveController.setGains(0, kP_drive, 0, kD_drive);
         strafeController.setGains(0, kP_strafe, 0, kD_strafe);
         turnController.setGains(0, kP_turn, 0, kD_turn);
-
-        // Hold Y to align
-        if (gamepad1.y || gamepad2.y) {
-            automatedDrive = alignToAprilTag(CV.getLargestTagPose());
-        }
-        // Lock on to goal (toggle).
-        if (gamepad1.yWasReleased() || gamepad2.yWasReleased()) {
-            lockedOn = !lockedOn;
-        }
-
-        double leftYInput = forwardRamper.rampInput(gamepad1.left_stick_y);
-        double leftXInput = strafeRamper.rampInput(gamepad1.left_stick_x);
-        double rightXInput;
-
-        if (lockedOn) {
-            // Auto-align.
-            rightXInput = getAprilTagTurnCommand();
-        } else {
-            // Needs to be less sensitive for turning.
-            rightXInput = turnRamper.rampInput(gamepad1.right_stick_x) * (shooterIsActive ? 0.4 : 0.8);
-        }
-
-        // Last parameter --- True: Robot Centric | False: Field Centric
-        follower.setTeleOpDrive(
-                -leftYInput, // Forward
-                -leftXInput, // Strafe
-                -rightXInput, // Turn
-                automatedDrive // Field Centric when lockedOn
-        );
-
-        // Reset Pose
-        if (gamepad1.backWasPressed()) {
-            follower.setPose(new Pose(0, 0, 0));
-        }
-
-        //Stop automated following if the follower is done
-        if (automatedDrive && (gamepad1.bWasPressed() || !follower.isBusy())) {
-            follower.startTeleopDrive();
-            automatedDrive = false;
-        }
     }
 
     public void runTeleOp() {
         runTeleOp(false);
+    }
+    public void runTeleOp(boolean shooterIsActive) {
+        updateSystems();
+        handleStateTransitions();
+
+        switch (driveState) {
+            case MANUAL:
+                handleManualDrive(false, shooterIsActive);
+                break;
+            case MANUAL_AIM_ASSIST:
+                handleManualDrive(true, shooterIsActive);
+                break;
+            case HOLD_POSITION:
+                holdPosition();
+                break;
+        }
+
+        // Reset Pose (Global command)
+        if (gamepad1.backWasPressed()) {
+            follower.setPose(new Pose(0, 0, 0));
+        }
+    }
+
+    private void handleStateTransitions() {
+        // HOLD_POSITION has the highest priority. Pressing Y enters this state.
+        if (gamepad1.y || gamepad2.y) {
+            if (driveState != DriveState.HOLD_POSITION) {
+                // Entering HOLD_POSITION for the first time
+                driveState = DriveState.HOLD_POSITION;
+                holdPositionTarget = follower.getPose(); // Set anchor point
+                telemetryM.debug("Drive State", "ENTERING HOLD_POSITION");
+            }
+        }
+        // If Y is released, go back to MANUAL.
+        else if (driveState == DriveState.HOLD_POSITION) {
+            driveState = DriveState.MANUAL;
+            telemetryM.debug("Drive State", "EXITING HOLD_POSITION -> MANUAL");
+        }
+        // Toggle AIM_ASSIST with B button if not holding position
+        else if (gamepad1.bWasPressed() || gamepad2.bWasPressed()) {
+            if (driveState == DriveState.MANUAL) {
+                driveState = DriveState.MANUAL_AIM_ASSIST;
+                telemetryM.debug("Drive State", "MANUAL -> AIM_ASSIST");
+            } else {
+                driveState = DriveState.MANUAL;
+                telemetryM.debug("Drive State", "AIM_ASSIST -> MANUAL");
+            }
+        }
+    }
+
+
+    private void handleManualDrive(boolean withAimAssist, boolean shooterIsActive) {
+        double leftYInput = forwardRamper.rampInput(gamepad1.left_stick_y);
+        double leftXInput = strafeRamper.rampInput(gamepad1.left_stick_x);
+        double rightXInput;
+
+        if (withAimAssist) {
+            rightXInput = getAprilTagTurnCommand();
+        } else {
+            rightXInput = turnRamper.rampInput(gamepad1.right_stick_x) * (shooterIsActive ? 0.4 : 0.8);
+        }
+
+        // Field-centric control for manual driving
+        follower.setTeleOpDrive(-leftYInput, -leftXInput, -rightXInput, false);
     }
 
     public void sendAllTelemetry(Telemetry telemetry, boolean enableAll) {
@@ -126,8 +162,7 @@ public class DriveSubsystem {
             telemetry.addData("position", follower.getPose());
             telemetry.addData("velocity", follower.getVelocity());
         }
-        telemetry.addData("automatedDrive", automatedDrive);
-        telemetry.addData("lockedOn", lockedOn);
+        telemetry.addData("Drive State", driveState.toString());
     }
 
     public void sendAprilTagTelemetry(Telemetry telemetry) {
@@ -171,81 +206,69 @@ public class DriveSubsystem {
     }
 
     private double getAprilTagTurnCommand() {
-        Pose3D tagPose = CV.getLargestTagPose();
+        LLResultTypes.FiducialResult targetTag = CV.getTargetTag();
 
-        if (tagPose == null) {
+        if (targetTag == null) {
+            telemetryM.debug("Lock On", "No tags detected");
             turnController.reset();
             return 0.0;
         }
 
         // Error is yaw.
-        double currentError = tagPose.getPosition().z;
+        double currentError = targetTag.getTargetXDegrees();
         FPIDOutput turnOutput = turnController.calculate(currentError);
-        double turn = turnOutput.total;
+        double turnPower = turnOutput.total;
 
         // Clamp speed
-        turn = Math.max(-0.4, Math.min(0.4, turn));
+        turnPower = Math.max(-0.8, Math.min(0.8, turnPower));
 
         telemetryM.debug("LockOn", "yawErr: %.2f", currentError);
         telemetryM.debug("LockOnPID", "P: %.2f, I: %.2f, D: %.2f, Total: %.2f",
-                turnOutput.p, turnOutput.i, turnOutput.d, turn);
+                turnOutput.p, turnOutput.i, turnOutput.d, turnPower);
 
-        return turn;
+        return turnPower;
     }
 
-    public boolean alignToPose(double x, double y, double z, double targetDistance) {
-        double xError = x - targetDistance; // Positive = too far
+    private void holdPosition() {
+        if (holdPositionTarget == null) return;
 
-        // Calculate movement commands and get full PID output for each
-        FPIDOutput driveOutput = driveController.calculate(xError);
-        FPIDOutput strafeOutput = strafeController.calculate(y);
-        FPIDOutput turnOutput = turnController.calculate(z);
+        Pose currentPose = follower.getPose();
+
+        // 1. Calculate the field-centric error (how far off we are on the field grid)
+        Pose fieldError = currentPose.minus(holdPositionTarget);
+
+        // 2. Rotate the field-centric error into a robot-centric error using the .rotate() method.
+        // We rotate by the *negative* of the robot's current heading.
+        // We set rotateHeading to 'false' because we want the raw heading error, not a rotated one.
+        Pose robotCentricError = fieldError.rotate(-currentPose.getHeading(), false);
+
+        // 3. Extract the errors from the new robot-centric pose.
+        double xError = robotCentricError.getX(); // This is now the strafe error
+        double yError = robotCentricError.getY(); // This is now the forward/backward error
+        double headingError = fieldError.getHeading();
+
+        // Calculate PID outputs
+        FPIDOutput driveOutput = driveController.calculate(yError); // Forward/backward error
+        FPIDOutput strafeOutput = strafeController.calculate(xError); // Left/right error
+        FPIDOutput turnOutput = turnController.calculate(headingError); // Heading error
 
         double drive = driveOutput.total;
         double strafe = strafeOutput.total;
         double turn = turnOutput.total;
 
-        // Clamp speeds at 0.4 max/min
-        drive = Math.max(-0.4, Math.min(0.4, drive));
-        strafe = Math.max(-0.4, Math.min(0.4, strafe));
-        turn = Math.max(-0.4, Math.min(0.4, turn));
+        // Clamp motor powers to reasonable limits
+        drive = Math.max(-1.0, Math.min(1.0, drive));
+        strafe = Math.max(-1.0, Math.min(1.0, strafe));
+        turn = Math.max(-0.8, Math.min(0.8, turn));
 
-        follower.setTeleOpDrive(-drive, -strafe, -turn, true);
+        // Send commands to the drivetrain. Note the sign changes to match motor directions.
+        follower.setTeleOpDrive(-drive, -strafe, -turn, true); // Use Robot-Centric for direct control
 
         // DETAILED TELEMETRY
-        telemetryM.debug("AlignErrors", "xErr: %.2f, yErr: %.2f, yawErr: %.2f", xError, y, z);
+        telemetryM.debug("HoldPosition", "Target: " + holdPositionTarget.toString());
+        telemetryM.debug("HoldPosition", "Current: " + currentPose);
+        telemetryM.debug("HoldErrors", "xErr: %.2f, yErr: %.2f, hErr: %.2f", xError, yError, headingError);
         telemetryM.debug("DrivePID", "P: %.2f, I: %.2f, D: %.2f, Total: %.2f",
                 driveOutput.p, driveOutput.i, driveOutput.d, drive);
-        telemetryM.debug("StrafePID", "P: %.2f, I: %.2f, D: %.2f, Total: %.2f",
-                strafeOutput.p, strafeOutput.i, strafeOutput.d, strafe);
-        telemetryM.debug("TurnPID", "P: %.2f, I: %.2f, D: %.2f, Total: %.2f",
-                turnOutput.p, turnOutput.i, turnOutput.d, turn);
-
-        // Determine if alignment is done
-        boolean aligned = Math.abs(xError) < 1.0 && Math.abs(y) < 1.0 && Math.abs(z) < 2.0;
-
-        if (aligned) {
-            follower.setTeleOpDrive(0, 0, 0, true);
-        }
-
-        return aligned;
-    }
-
-    /**
-     * Align to a given AprilTagPose object.
-     * This can be called from a VisionSubsystem that provides tag data.
-     */
-    public boolean alignToAprilTag(Pose3D tagPose) {
-        if (tagPose == null) {
-            follower.setTeleOpDrive(0, 0, 0, true);
-            telemetryM.debug("AlignToAprilTag", "No tags detected");
-            driveController.reset();
-            strafeController.reset();
-            turnController.reset();
-            return false;
-        }
-
-        // Error terms are now directly from the pose
-        return alignToPose(tagPose.getPosition().x, tagPose.getPosition().y, tagPose.getPosition().z, 10.0);
     }
 }
