@@ -24,7 +24,7 @@ public class ShooterTester extends OpMode {
         shooterSubsystem.runTeleOp(gamepad1);
 
         // Telemetry
-        shooterSubsystem.enableAllTelemetry(telemetry, true);
+        shooterSubsystem.sendAllTelemetry(telemetry, true);
         telemetry.update();
 
         try {

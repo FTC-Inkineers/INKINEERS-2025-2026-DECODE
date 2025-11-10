@@ -108,7 +108,7 @@ public class IntakeSubsystem {
         frontIntake.setPower(0);
     }
 
-    public void enableAllTelemetry(Telemetry telemetry, boolean enableAll) {
+    public void sendAllTelemetry(Telemetry telemetry, boolean enableAll) {
         telemetry.addLine("\\ INTAKE SUBSYSTEM //");
         if (enableAll) {
             telemetry.addData("Intake Power", getIntakePower());

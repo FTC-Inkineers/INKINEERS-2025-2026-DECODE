@@ -23,7 +23,7 @@ public class ShooterKfTester extends OpMode {
         shooterSubsystem.runKfTester(gamepad1);
 
         // Telemetry
-        shooterSubsystem.enableAllTelemetry(telemetry, true);
+        shooterSubsystem.sendAllTelemetry(telemetry, true);
         telemetry.addData("Shooter Power", shooterSubsystem.testPower);
         telemetry.addData("Amount of Change", shooterSubsystem.changeFactor);
         telemetry.addData("Increment / Decrement Power", "DPAD UP / DOWN");

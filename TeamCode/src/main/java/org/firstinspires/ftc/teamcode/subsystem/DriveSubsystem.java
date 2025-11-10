@@ -4,8 +4,6 @@ import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
-import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -13,8 +11,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
-
-import java.util.List;
 
 public class DriveSubsystem {
     // Tunable proportional gains for AprilTag alignment
@@ -73,6 +69,7 @@ public class DriveSubsystem {
     public void runTeleOp(boolean shooterIsActive) {
         // Call this once per loop
         follower.update();
+        CV.update();
         telemetryM.update();
         driveController.setGains(0, kP_drive, 0, kD_drive);
         strafeController.setGains(0, kP_strafe, 0, kD_strafe);
@@ -80,7 +77,7 @@ public class DriveSubsystem {
 
         // Hold Y to align
         if (gamepad1.y || gamepad2.y) {
-            automatedDrive = alignToAprilTag(CV.getLLResult());
+            automatedDrive = alignToAprilTag(CV.getLargestTagPose());
         }
         // Lock on to goal (toggle).
         if (gamepad1.yWasReleased() || gamepad2.yWasReleased()) {
@@ -119,7 +116,11 @@ public class DriveSubsystem {
         }
     }
 
-    public void enableAllTelemetry(Telemetry telemetry, boolean enableAll) {
+    public void runTeleOp() {
+        runTeleOp(false);
+    }
+
+    public void sendAllTelemetry(Telemetry telemetry, boolean enableAll) {
         telemetry.addLine("\\ DRIVE //");
         if (enableAll) {
             telemetry.addData("position", follower.getPose());
@@ -127,6 +128,10 @@ public class DriveSubsystem {
         }
         telemetry.addData("automatedDrive", automatedDrive);
         telemetry.addData("lockedOn", lockedOn);
+    }
+
+    public void sendAprilTagTelemetry(Telemetry telemetry) {
+        CV.sendTelemetry(telemetry);
     }
 
     /** @noinspection FieldCanBeLocal*/
@@ -166,21 +171,7 @@ public class DriveSubsystem {
     }
 
     private double getAprilTagTurnCommand() {
-        LLResult result = CV.getLLResult();
-        List<LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
-        LLResultTypes.FiducialResult tagPose = null;
-
-        if (fiducials.isEmpty()) {
-            telemetryM.debug("LockOn", "No tags detected");
-            return 0.0; // Stop turning if no tags are visible
-        }
-
-        // Find the largest AprilTag in the list
-        for (LLResultTypes.FiducialResult fiducial : fiducials) {
-            if (tagPose == null || fiducial.getTargetArea() > tagPose.getTargetArea()) {
-                tagPose = fiducial;
-            }
-        }
+        Pose3D tagPose = CV.getLargestTagPose();
 
         if (tagPose == null) {
             turnController.reset();
@@ -188,7 +179,7 @@ public class DriveSubsystem {
         }
 
         // Error is yaw.
-        double currentError = tagPose.getCameraPoseTargetSpace().getPosition().z;
+        double currentError = tagPose.getPosition().z;
         FPIDOutput turnOutput = turnController.calculate(currentError);
         double turn = turnOutput.total;
 
@@ -244,29 +235,17 @@ public class DriveSubsystem {
      * Align to a given AprilTagPose object.
      * This can be called from a VisionSubsystem that provides tag data.
      */
-    public boolean alignToAprilTag(LLResult result) {
-        List<LLResultTypes.FiducialResult> fiducials = result.getFiducialResults();
-        LLResultTypes.FiducialResult tagPose = null; // Initialize to null
-
-        if (fiducials.isEmpty()) {
+    public boolean alignToAprilTag(Pose3D tagPose) {
+        if (tagPose == null) {
             follower.setTeleOpDrive(0, 0, 0, true);
             telemetryM.debug("AlignToAprilTag", "No tags detected");
-            // Reset all controllers when alignment stops or loses the tag
             driveController.reset();
             strafeController.reset();
             turnController.reset();
             return false;
         }
 
-        // Find the largest AprilTag in the list
-        for (LLResultTypes.FiducialResult fiducial : fiducials) {
-            if (tagPose == null || fiducial.getTargetArea() > tagPose.getTargetArea()) {
-                tagPose = fiducial;
-            }
-        }
-
-        // Error terms. Pitch, roll, and yaw, respectively.
-        Pose3D error3d = tagPose.getCameraPoseTargetSpace();
-        return alignToPose(error3d.getPosition().x, error3d.getPosition().y, error3d.getPosition().z, 10.0); // Default target distance = 10 inches
+        // Error terms are now directly from the pose
+        return alignToPose(tagPose.getPosition().x, tagPose.getPosition().y, tagPose.getPosition().z, 10.0);
     }
 }

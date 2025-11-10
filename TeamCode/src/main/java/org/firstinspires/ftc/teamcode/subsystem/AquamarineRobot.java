@@ -44,9 +44,9 @@ public class AquamarineRobot {
     }
 
     public void sendTelemetry(Telemetry telemetry) {
-        shooter.enableAllTelemetry(telemetry, enableAllShooterTelemetry);
-        drive.enableAllTelemetry(telemetry, enableALlDriveTelemetry);
-        intake.enableAllTelemetry(telemetry, enableAllIntakeTelemetry);
+        shooter.sendAllTelemetry(telemetry, enableAllShooterTelemetry);
+        drive.sendAllTelemetry(telemetry, enableALlDriveTelemetry);
+        intake.sendAllTelemetry(telemetry, enableAllIntakeTelemetry);
         // Add other relevant telemetry from other subsystems if needed
     }
 }

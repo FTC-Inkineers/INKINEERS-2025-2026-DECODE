@@ -186,7 +186,7 @@ public class ShooterSubsystem {
         return targetRPM > 1000 || Math.abs(error) > 100;
     }
 
-    public void enableAllTelemetry(Telemetry telemetry, boolean enableAll) {
+    public void sendAllTelemetry(Telemetry telemetry, boolean enableAll) {
         telemetry.addLine("\\ SHOOTER SUBSYSTEM //");
         if (enableAll) {
             telemetry.addData("Shooter Message", shooterMessage());
