@@ -26,7 +26,7 @@ public class ShooterSubsystem {
     private final double HOOD_MAX_EXTEND = 1;
     private final double HOOD_MAX_RETRACT = 0.5;
 
-    private final FPIDController shooterController;
+    private final FPIDController shooterController = new FPIDController.Builder(kP).withF(kF).withD(kD).build();
 
     public static double triggerPower = 0.92;
 
@@ -54,8 +54,6 @@ public class ShooterSubsystem {
 
         triggerTimer.reset();
         shooterTimer.reset();
-
-        shooterController = new FPIDController.Builder(kP).withF(kF).withD(kD).build();
     }
 
     // RPM PID
