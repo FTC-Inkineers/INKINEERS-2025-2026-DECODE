@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystem;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -34,7 +33,7 @@ public class IntakeSubsystem {
         rightIntakeState = IntakeUnitState.IDLE;
     }
 
-    private double power = 1.0;
+    private double power = 0.96;
 
     public void runTeleOp(Gamepad gamepad) {
         // --- 1. Handle State Transitions (Controller Logic) ---
