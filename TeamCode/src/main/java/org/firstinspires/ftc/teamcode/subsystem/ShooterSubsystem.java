@@ -167,15 +167,8 @@ public class ShooterSubsystem {
         shooterMotor.setPower(targetPower);
     }
 
-    boolean init = false;
-    public void autoShoot(IntakeSubsystem intake) {
-        if (!init) {
-            init = true;
-        }
-        targetRPM = STATIONARY_RPM_FAR;
-        intake.setRightIntake(1);
-        intake.setLeftIntake(0.4);
-        updateShooterPower();
+    public void setTargetRPM(double rpm) {
+        this.targetRPM = rpm;
     }
 
     public boolean isIdle() {
