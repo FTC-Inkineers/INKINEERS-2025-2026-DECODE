@@ -35,7 +35,6 @@ public class ShooterSubsystem {
     public static double kP = 0.01;
     public static double kI = 0.0;
     public static double kD = 0.0008;
-    public static double RPM_TOLERANCE = 40;
     // A lower value means more smoothing but more lag. Try a value between 0.1 and 0.3.
     public static double SMOOTHING_ALPHA = 0.1;
 
@@ -77,11 +76,6 @@ public class ShooterSubsystem {
     public void updateShooterPower() {
         double currentRPM = getCurrentRPM();
         error = targetRPM - currentRPM;
-
-        if (Math.abs(error) <= RPM_TOLERANCE) {
-            // You can optionally treat small errors as zero, but often it's better to let PID handle it.
-            // For now, we'll keep it simple.
-        }
 
         // Calculate power using the controller. Pass both the error and the target (for kF).
         FPIDOutput output = shooterController.calculate(error, targetRPM);
@@ -143,6 +137,10 @@ public class ShooterSubsystem {
         shooterMotor.setPower(targetPower);
     }
 
+    public boolean isActive() {
+        return targetRPM > 1000 || Math.abs(error) < 100;
+    }
+
     public void runHood(Gamepad gamepad) {
         // Hood Control
         if (gamepad.right_bumper) {
@@ -165,6 +163,10 @@ public class ShooterSubsystem {
         shooterMotor.setPower(targetPower);
     }
 
+    public void windDown() {
+        targetPower = 0.0;
+    }
+
     public void setTargetRPM(double rpm) {
         this.targetRPM = rpm;
     }
@@ -173,8 +175,8 @@ public class ShooterSubsystem {
         return targetRPM <= 10;
     }
 
-    public boolean isActive() {
-        return targetRPM > 1000 || Math.abs(error) > 100;
+    public boolean isReady() {
+        return Math.abs(error) < 100;
     }
 
     public void sendAllTelemetry(Telemetry telemetry, boolean enableAll) {

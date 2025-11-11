@@ -1,10 +1,14 @@
 package org.firstinspires.ftc.teamcode.opmode.auto;
 
+import static org.firstinspires.ftc.teamcode.subsystem.IntakeSubsystem.IntakeSide.LEFT;
+import static org.firstinspires.ftc.teamcode.subsystem.IntakeSubsystem.IntakeSide.RIGHT;
+import static org.firstinspires.ftc.teamcode.subsystem.IntakeSubsystem.IntakeUnitState.INTAKE;
+
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.opmode.auto.action.NavigationConsole;
-import org.firstinspires.ftc.teamcode.opmode.auto.action.FireCannon;
+import org.firstinspires.ftc.teamcode.opmode.auto.action.Navigator;
+import org.firstinspires.ftc.teamcode.opmode.auto.action.CannonSail;
 import org.firstinspires.ftc.teamcode.pedroPathing.Paths;
 import org.firstinspires.ftc.teamcode.subsystem.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystem.IntakeSubsystem;
@@ -15,7 +19,7 @@ public abstract class MainAutonomous extends OpMode {
     ShooterSubsystem shooter;
     IntakeSubsystem intake;
     Paths paths;
-    NavigationConsole navigationConsole;
+    Navigator navigator;
 
     protected abstract boolean isBlueSide();
 
@@ -28,7 +32,7 @@ public abstract class MainAutonomous extends OpMode {
         shooter = new ShooterSubsystem(hardwareMap);
         intake = new IntakeSubsystem(hardwareMap);
         paths = new Paths(drive.follower, isBlueSide());
-        navigationConsole = new NavigationConsole();
+        navigator = new Navigator();
 
         drive.initAuto();
 
@@ -49,7 +53,8 @@ public abstract class MainAutonomous extends OpMode {
         // These loop the movements of the robot, these must be called continuously in order to work
         drive.follower.update();
         shooter.runAuto();
-        navigationConsole.update();
+        intake.runAuto();
+        navigator.update();
 
         autonomousPathUpdate();
 
@@ -65,92 +70,111 @@ public abstract class MainAutonomous extends OpMode {
     public void autonomousPathUpdate() {
         switch(pathState) {
             case 0:
-                // State 0: Start following Path 1
+                // Start following Path and Spin Up early
                 drive.follower.followPath(paths.Path1, true);
+                shooter.setTargetRPM(shooter.getStationaryRPM());
                 setPathState(1);
                 break;
 
             case 1:
-                // State 1: Wait for Path 1 to finish, then shoot
+                // Spin up while waiting for path to finish, then shoot
+                shooter.updateShooterPower();
+
                 if (!drive.follower.isBusy()) {
-                    shoot();
+                    autoShoot();
                     setPathState(2);
                 }
                 break;
 
             case 2:
-                // State 2: Wait for shooting to complete, then start Path 2 with intake
-                if (shooter.isIdle()) { // Wait for shooter
-                    intake.setRightIntake(1); // Turn on intake
+                // Wait for shooter to finish before following next Path
+                if (shooter.isIdle()) {
+                    autoIntake();
                     drive.follower.followPath(paths.Path2, 0.6, true);
                     setPathState(3);
                 }
                 break;
 
             case 3:
+                // Start following Path and Spin Up early
                 if (!drive.follower.isBusy()) {
                     intake.stop();
                     drive.follower.followPath(paths.Path3, true);
+                    shooter.setTargetRPM(shooter.getStationaryRPM());
                     setPathState(4);
                 }
                 break;
 
             case 4:
+                // Spin up while waiting for path to finish, then shoot
+                shooter.updateShooterPower();
+
                 if (!drive.follower.isBusy()) {
-                    shoot();
+                    autoShoot();
                     setPathState(5);
                 }
                 break;
 
             case 5:
+                // Wait for shooter to finish before following next Path
                 if (shooter.isIdle()) {
-                    intake.setRightIntake(1);
+                    autoIntake();
                     drive.follower.followPath(paths.Path4, 0.6, true);
                     setPathState(6);
                 }
                 break;
 
             case 6:
+                // Start following Path and Spin Up early
                 if (!drive.follower.isBusy()) {
                     intake.stop();
                     drive.follower.followPath(paths.Path5, true);
+                    shooter.setTargetRPM(shooter.getStationaryRPM());
                     setPathState(7);
                 }
                 break;
 
             case 7:
+                // Spin up while waiting for path to finish, then shoot
+                shooter.updateShooterPower();
+
                 if (!drive.follower.isBusy()) {
-                    shoot();
+                    autoShoot();
                     setPathState(8);
                 }
                 break;
 
             case 8:
+                // Wait for shooter to finish before following next Path
                 if (shooter.isIdle()) {
-                    intake.setRightIntake(1);
+                    autoIntake();
                     drive.follower.followPath(paths.Path6, 0.6, true);
                     setPathState(9);
                 }
                 break;
 
             case 9:
+                // Start following Path and Spin Up early
                 if (!drive.follower.isBusy()) {
                     intake.stop();
                     drive.follower.followPath(paths.Path7, true);
-                    setPathState(10); // Move to idle state
+                    shooter.setTargetRPM(shooter.getStationaryRPM());
+                    setPathState(10);
                 }
                 break;
 
             case 10:
+                // Spin up while waiting for path to finish, then shoot
+                shooter.updateShooterPower();
+
                 if (!drive.follower.isBusy()) {
-                    shoot();
+                    autoShoot();
                     setPathState(11);
                 }
-
                 break;
 
             case 11:
-
+                // TODO: Move out of shooting zone.
                 break;
         }
     }
@@ -161,7 +185,15 @@ public abstract class MainAutonomous extends OpMode {
         pathTimer.reset();
     }
 
-    public void shoot() {
-        navigationConsole.setSail(new FireCannon(shooter, intake));
+    public void autoShoot() {
+        navigator.setSail(new CannonSail(shooter, intake));
+    }
+
+    public void autoIntake() {
+        if (isBlueSide()) {
+            intake.setIntake(LEFT, INTAKE);
+        } else {
+            intake.setIntake(RIGHT, INTAKE);
+        }
     }
 }

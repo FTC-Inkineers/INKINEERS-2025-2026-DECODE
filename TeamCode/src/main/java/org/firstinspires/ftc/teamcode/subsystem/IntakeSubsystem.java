@@ -7,7 +7,6 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class IntakeSubsystem {
-
     public enum IntakeUnitState {
         IDLE,
         INTAKE,
@@ -39,7 +38,7 @@ public class IntakeSubsystem {
         // --- 1. Handle State Transitions (Controller Logic) ---
         // This logic is now split into two independent blocks.
 
-        // Determine the state for the FRONT intake
+        // Determine the state for the LEFT intake
         if (gamepad.left_trigger > 0) {
             leftIntakeState = IntakeUnitState.INTAKE;
         } else if (gamepad.left_bumper) {
@@ -48,7 +47,7 @@ public class IntakeSubsystem {
             leftIntakeState = IntakeUnitState.IDLE;
         }
 
-        // Determine the state for the BACK intake
+        // Determine the state for the RIGHT intake
         if (gamepad.right_trigger > 0) {
             rightIntakeState = IntakeUnitState.INTAKE;
         } else if (gamepad.right_bumper) {
@@ -60,7 +59,7 @@ public class IntakeSubsystem {
 
         // --- 2. Execute State Actions (Motor Logic) ---
 
-        // Set power for the FRONT intake based on its state
+        // Set power for the LEFT intake based on its state
         switch (leftIntakeState) {
             case IDLE:
                 leftIntake.setPower(0);
@@ -73,7 +72,7 @@ public class IntakeSubsystem {
                 break;
         }
 
-        // Set power for the BACK intake based on its state
+        // Set power for the RIGHT intake based on its state
         switch (rightIntakeState) {
             case IDLE:
                 rightIntake.setPower(0);
@@ -95,17 +94,60 @@ public class IntakeSubsystem {
         power = Math.max(0.0, Math.min(1.0, power));
     }
 
-    public void setRightIntake(double power) {
-        leftIntake.setPower(power);
+    public void runAuto() {
+        // Set power for the LEFT intake based on its state
+        switch (leftIntakeState) {
+            case IDLE:
+                leftIntake.setPower(0);
+                break;
+            case INTAKE:
+                leftIntake.setPower(power);
+                break;
+            case OUTTAKE:
+                leftIntake.setPower(-power * 0.6);
+                break;
+        }
+
+        // Set power for the RIGHT intake based on its state
+        switch (rightIntakeState) {
+            case IDLE:
+                rightIntake.setPower(0);
+                break;
+            case INTAKE:
+                rightIntake.setPower(power);
+                break;
+            case OUTTAKE:
+                rightIntake.setPower(-power * 0.6);
+                break;
+        }
     }
 
-    public void setLeftIntake(double power) {
-        rightIntake.setPower(power);
+    public enum IntakeSide {
+        LEFT,
+        RIGHT,
+        BOTH
+    }
+
+    public void setIntake(IntakeSide side, IntakeUnitState state) {
+        if (side == IntakeSide.LEFT || side == IntakeSide.BOTH) {
+            this.leftIntakeState = state;
+        }
+        if (side == IntakeSide.RIGHT || side == IntakeSide.BOTH) {
+            this.rightIntakeState = state;
+        }
+    }
+
+    public void setRightIntakeState(IntakeUnitState state) {
+        this.rightIntakeState = state;
+    }
+
+    public void setLeftIntakeState(IntakeUnitState state) {
+        this.leftIntakeState = state;
     }
 
     public void stop() {
-        leftIntake.setPower(0);
-        rightIntake.setPower(0);
+        leftIntakeState = IntakeUnitState.IDLE;
+        rightIntakeState = IntakeUnitState.IDLE;
     }
 
     public void sendAllTelemetry(Telemetry telemetry, boolean enableAll) {

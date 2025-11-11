@@ -1,6 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmode.auto.action;
 
-public class NavigationConsole {
+public class Navigator {
     private Sail currentSail = null;
     private boolean isActionInitialized = false;
 
