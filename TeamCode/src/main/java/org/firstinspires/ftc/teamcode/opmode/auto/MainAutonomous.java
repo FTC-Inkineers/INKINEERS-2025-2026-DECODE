@@ -3,8 +3,8 @@ package org.firstinspires.ftc.teamcode.opmode.auto;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.opmode.auto.action.ActionRunner;
-import org.firstinspires.ftc.teamcode.opmode.auto.action.ShootAction;
+import org.firstinspires.ftc.teamcode.opmode.auto.action.NavigationConsole;
+import org.firstinspires.ftc.teamcode.opmode.auto.action.FireCannon;
 import org.firstinspires.ftc.teamcode.pedroPathing.Paths;
 import org.firstinspires.ftc.teamcode.subsystem.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystem.IntakeSubsystem;
@@ -15,7 +15,7 @@ public abstract class MainAutonomous extends OpMode {
     ShooterSubsystem shooter;
     IntakeSubsystem intake;
     Paths paths;
-    ActionRunner actionRunner;
+    NavigationConsole navigationConsole;
 
     protected abstract boolean isBlueSide();
 
@@ -28,7 +28,7 @@ public abstract class MainAutonomous extends OpMode {
         shooter = new ShooterSubsystem(hardwareMap);
         intake = new IntakeSubsystem(hardwareMap);
         paths = new Paths(drive.follower, isBlueSide());
-        actionRunner = new ActionRunner();
+        navigationConsole = new NavigationConsole();
 
         drive.initAuto();
 
@@ -49,7 +49,7 @@ public abstract class MainAutonomous extends OpMode {
         // These loop the movements of the robot, these must be called continuously in order to work
         drive.follower.update();
         shooter.runAuto();
-        actionRunner.update();
+        navigationConsole.update();
 
         autonomousPathUpdate();
 
@@ -73,7 +73,7 @@ public abstract class MainAutonomous extends OpMode {
             case 1:
                 // State 1: Wait for Path 1 to finish, then shoot
                 if (!drive.follower.isBusy()) {
-                    actionRunner.runAction(new ShootAction(shooter, intake));
+                    shoot();
                     setPathState(2);
                 }
                 break;
@@ -97,7 +97,7 @@ public abstract class MainAutonomous extends OpMode {
 
             case 4:
                 if (!drive.follower.isBusy()) {
-//                    shooter.autoShoot();
+                    shoot();
                     setPathState(5);
                 }
                 break;
@@ -120,7 +120,7 @@ public abstract class MainAutonomous extends OpMode {
 
             case 7:
                 if (!drive.follower.isBusy()) {
-                    shooter.autoShoot(intake);
+                    shoot();
                     setPathState(8);
                 }
                 break;
@@ -143,7 +143,7 @@ public abstract class MainAutonomous extends OpMode {
 
             case 10:
                 if (!drive.follower.isBusy()) {
-                    shooter.autoShoot(intake);
+                    shoot();
                     setPathState(11);
                 }
 
@@ -162,6 +162,6 @@ public abstract class MainAutonomous extends OpMode {
     }
 
     public void shoot() {
-        shooter.autoShoot(intake);
+        navigationConsole.setSail(new FireCannon(shooter, intake));
     }
 }

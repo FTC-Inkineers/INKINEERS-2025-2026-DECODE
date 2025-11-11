@@ -9,7 +9,7 @@ import org.firstinspires.ftc.teamcode.subsystem.ShooterSubsystem;
  * An action to autonomously shoot one or more rings.
  * This action will rev up the shooter, wait until it's at speed, fire, and then stop.
  */
-public class ShootAction implements Action {
+public class FireCannon implements Sail {
 
     private final ShooterSubsystem shooter;
     private final IntakeSubsystem intake;
@@ -19,15 +19,17 @@ public class ShootAction implements Action {
     private enum ShootState {
         IDLE,
         RAMP_UP,
-        FIRE,
+        FIRE_MID,
+        FIRE_LEFT,
+        FIRE_RIGHT,
         DONE
     }
     private ShootState currentState = ShootState.IDLE;
 
-    private final double SHOOTER_RAMP_UP_TIMEOUT_S = 2.0;
+    private final double SHOOTER_RAMP_UP_TIMEOUT = 2.0;
     private final double FIRING_DURATION_S = 1.0;
 
-    public ShootAction(ShooterSubsystem shooter, IntakeSubsystem intake) {
+    public FireCannon(ShooterSubsystem shooter, IntakeSubsystem intake) {
         this.shooter = shooter;
         this.intake = intake;
     }
@@ -47,14 +49,32 @@ public class ShootAction implements Action {
             case RAMP_UP:
                 // Wait for the shooter to reach its target RPM
                 shooter.updateShooterPower();
-                if (shooter.isAtTargetRPM() || timer.seconds() > SHOOTER_RAMP_UP_TIMEOUT_S) {
+                if (shooter.isReady() || timer.seconds() > SHOOTER_RAMP_UP_TIMEOUT) {
                     // Once at speed (or timed out), move to the firing state
-                    currentState = ShootState.FIRE;
+                    currentState = ShootState.FIRE_MID;
                     timer.reset();
                 }
                 break;
-            case FIRE:
+            case FIRE_MID:
+                // Run the trigger motor to push the ball into the flywheel
+                shooter.pullTrigger();
+                if (timer.seconds() > FIRING_DURATION_S) {
+                    // Firing is complete
+                    currentState = ShootState.FIRE_LEFT;
+                }
+                break;
+            case FIRE_LEFT:
+                // Run the trigger motor to push the ball into the flywheel
+                intake.setLeftIntake(0.96);
+                shooter.pullTrigger();
+                if (timer.seconds() > FIRING_DURATION_S) {
+                    // Firing is complete
+                    currentState = ShootState.FIRE_RIGHT;
+                }
+                break;
+            case FIRE_RIGHT:
                 // Run the trigger motor to push the ring into the flywheel
+                intake.setRightIntake(0.96);
                 shooter.pullTrigger();
                 if (timer.seconds() > FIRING_DURATION_S) {
                     // Firing is complete
@@ -74,7 +94,7 @@ public class ShootAction implements Action {
     public void end() {
         // Cleanup: Stop the shooter and trigger motors
         shooter.setTargetRPM(0);
-        shooter.updateShooterPower();
+        shooter.windDown();
         shooter.releaseTrigger();
     }
 }

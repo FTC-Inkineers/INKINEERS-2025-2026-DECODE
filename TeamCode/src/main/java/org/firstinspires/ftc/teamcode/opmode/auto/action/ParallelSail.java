@@ -7,27 +7,27 @@ import java.util.List;
  * An action that runs multiple actions at the same time.
  * This action is considered finished only when all of its child actions are finished.
  */
-public class ParallelAction implements Action {
-    private final List<Action> actions;
+public class ParallelSail implements Sail {
+    private final List<Sail> sails;
 
-    public ParallelAction(Action... actions) {
-        this.actions = Arrays.asList(actions);
+    public ParallelSail(Sail... sails) {
+        this.sails = Arrays.asList(sails);
     }
 
     @Override
     public void initialize() {
         // Initialize all child actions
-        for (Action action : actions) {
-            action.initialize();
+        for (Sail sail : sails) {
+            sail.initialize();
         }
     }
 
     @Override
     public void execute() {
         // Execute all child actions that are not yet finished
-        for (Action action : actions) {
-            if (!action.isFinished()) {
-                action.execute();
+        for (Sail sail : sails) {
+            if (!sail.isFinished()) {
+                sail.execute();
             }
         }
     }
@@ -35,8 +35,8 @@ public class ParallelAction implements Action {
     @Override
     public boolean isFinished() {
         // The parallel action is finished only if all child actions are finished
-        for (Action action : actions) {
-            if (!action.isFinished()) {
+        for (Sail sail : sails) {
+            if (!sail.isFinished()) {
                 return false; // At least one action is still running
             }
         }
@@ -46,8 +46,8 @@ public class ParallelAction implements Action {
     @Override
     public void end() {
         // Call the end method for all child actions
-        for (Action action : actions) {
-            action.end();
+        for (Sail sail : sails) {
+            sail.end();
         }
     }
 }

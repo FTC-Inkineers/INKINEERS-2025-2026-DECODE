@@ -8,13 +8,13 @@ import java.util.Queue;
  * An action that runs a series of other actions in sequence.
  * It moves to the next action only when the current one is finished.
  */
-public class SequentialAction implements Action {
-    private final Queue<Action> actionQueue;
-    private Action currentAction;
+public class SequentialSail implements Sail {
+    private final Queue<Sail> sailQueue;
+    private Sail currentSail;
 
-    public SequentialAction(Action... actions) {
-        this.actionQueue = new LinkedList<>(Arrays.asList(actions));
-        this.currentAction = null;
+    public SequentialSail(Sail... sails) {
+        this.sailQueue = new LinkedList<>(Arrays.asList(sails));
+        this.currentSail = null;
     }
 
     @Override
@@ -25,43 +25,43 @@ public class SequentialAction implements Action {
 
     @Override
     public void execute() {
-        if (currentAction == null) {
+        if (currentSail == null) {
             return; // Nothing to do
         }
 
         // If the current action is finished, move to the next one
-        if (currentAction.isFinished()) {
-            currentAction.end();
+        if (currentSail.isFinished()) {
+            currentSail.end();
             advanceToNextAction();
         }
 
         // If there's still a valid action (and it's not finished), execute it
-        if (currentAction != null) {
-            currentAction.execute();
+        if (currentSail != null) {
+            currentSail.execute();
         }
     }
 
     private void advanceToNextAction() {
         // Get the next action from the queue
-        currentAction = actionQueue.poll();
-        if (currentAction != null) {
+        currentSail = sailQueue.poll();
+        if (currentSail != null) {
             // If there is a new action, initialize it
-            currentAction.initialize();
+            currentSail.initialize();
         }
     }
 
     @Override
     public boolean isFinished() {
         // The entire sequence is finished when there are no more actions to run
-        return currentAction == null;
+        return currentSail == null;
     }
 
     @Override
     public void end() {
         // Ensure the last action's end method is called if it hasn't been already
-        if (currentAction != null) {
-            currentAction.end();
-            currentAction = null;
+        if (currentSail != null) {
+            currentSail.end();
+            currentSail = null;
         }
     }
 }

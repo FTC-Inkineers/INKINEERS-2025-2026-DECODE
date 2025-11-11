@@ -4,7 +4,7 @@ package org.firstinspires.ftc.teamcode.opmode.auto.action;
  * An interface for creating modular, sequential actions in autonomous.
  * Each action has a defined lifecycle: initialize, execute, and a condition to end.
  */
-public interface Action {
+public interface Sail {
     /**
      * Called once when the action is first started.
      * Place any setup code here.
