@@ -20,7 +20,7 @@ public class ShooterSubsystem {
 
     private final int SHOOTER_TICKS_PER_REV = 28;
     private final double MAX_RPM = 6000;
-    private double STATIONARY_RPM_FAR = 3500;
+    private double STATIONARY_RPM_FAR = 3300;
     private final double STATIONARY_RPM_CLOSE = 2800;
 
     private final double HOOD_MAX_EXTEND = 1;
@@ -173,8 +173,8 @@ public class ShooterSubsystem {
             init = true;
         }
         targetRPM = STATIONARY_RPM_FAR;
-        intake.setFrontIntake(1);
-        intake.setBackIntake(0.4);
+        intake.setRightIntake(1);
+        intake.setLeftIntake(0.4);
         updateShooterPower();
     }
 

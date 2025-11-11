@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystem;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
@@ -12,11 +13,12 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
+@Config
 public class DriveSubsystem {
     // Tunable proportional gains for AprilTag alignment
-    private static final double kP_drive = 0.06, kD_drive = 0.00;       // Forward/backward
-    private static final double kP_strafe = 0.06, kD_strafe = 0.00;     // Left/right
-    private static final double kP_turn = 0.06, kD_turn = 0.00;         // Turn
+    public static double kP_drive = 0.01, kD_drive = 0.00;       // Forward/backward
+    public static double kP_strafe = 0.01, kD_strafe = 0.00;     // Left/right
+    public static double kP_turn = 0.01, kD_turn = 0.00;         // Turn
 
     private final FPIDController driveController = new FPIDController.Builder(kP_drive).withD(kD_drive).build();
     private final FPIDController strafeController = new FPIDController.Builder(kP_strafe).withD(kD_strafe).build();
@@ -129,7 +131,7 @@ public class DriveSubsystem {
             telemetryM.debug("Drive State", "EXITING HOLD_POSITION -> MANUAL");
         }
         // Toggle AIM_ASSIST with B button if not holding position
-        else if (gamepad1.bWasPressed() || gamepad2.bWasPressed()) {
+        else if (gamepad1.yWasPressed() || gamepad2.yWasPressed()) {
             if (driveState == DriveState.MANUAL) {
                 driveState = DriveState.MANUAL_AIM_ASSIST;
                 telemetryM.debug("Drive State", "MANUAL -> AIM_ASSIST");
@@ -146,7 +148,7 @@ public class DriveSubsystem {
         double leftXInput = strafeRamper.rampInput(gamepad1.left_stick_x);
         double rightXInput;
 
-        if (withAimAssist) {
+        if (withAimAssist && CV.isTargetVisible()) {
             rightXInput = getAprilTagTurnCommand();
         } else {
             rightXInput = turnRamper.rampInput(gamepad1.right_stick_x) * (shooterIsActive ? 0.4 : 0.8);
@@ -220,7 +222,7 @@ public class DriveSubsystem {
         double turnPower = turnOutput.total;
 
         // Clamp speed
-        turnPower = Math.max(-0.8, Math.min(0.8, turnPower));
+        turnPower = Math.max(-0.5, Math.min(0.5, turnPower));
 
         telemetryM.debug("LockOn", "yawErr: %.2f", currentError);
         telemetryM.debug("LockOnPID", "P: %.2f, I: %.2f, D: %.2f, Total: %.2f",

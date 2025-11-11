@@ -12,8 +12,8 @@ import java.util.List;
 
 public class ComputerVision {
     // Alliance-specific AprilTag IDs
-    private static final int BLUE_BACKDROP_ID = 20;
-    private static final int RED_BACKDROP_ID = 21;
+    private static final int BLUE_GOAL_ID = 20;
+    private static final int RED_GOAL_ID = 24;
 
     private final Limelight3A limelight;
     private LLResult latestResult;
@@ -28,11 +28,15 @@ public class ComputerVision {
         limelight.pipelineSwitch(1);
 
         // Set the target ID based on the alliance color passed in
-        this.targetTagId = isBlueSide ? BLUE_BACKDROP_ID : RED_BACKDROP_ID;
+        this.targetTagId = isBlueSide ? BLUE_GOAL_ID : RED_GOAL_ID;
     }
 
     public void update() {
         latestResult = limelight.getLatestResult();
+    }
+
+    public boolean isTargetVisible() {
+        return getTargetTag() != null;
     }
 
     /**

@@ -76,7 +76,7 @@ public abstract class MainAutonomous extends OpMode {
             case 2:
                 // State 2: Wait for shooting to complete, then start Path 2 with intake
                 if (shooter.isIdle()) { // Wait for shooter
-                    intake.setFrontIntake(1); // Turn on intake
+                    intake.setRightIntake(1); // Turn on intake
                     drive.follower.followPath(paths.Path2, 0.6, true);
                     setPathState(3);
                 }
@@ -98,55 +98,55 @@ public abstract class MainAutonomous extends OpMode {
                 break;
 
             case 5:
-//                if (shooter.isIdle()) {
-//                    intake.setFrontIntake(1);
-//                    drive.follower.followPath(paths.Path4, 0.6, true);
-//                    setPathState(6);
-//                }
+                if (shooter.isIdle()) {
+                    intake.setRightIntake(1);
+                    drive.follower.followPath(paths.Path4, 0.6, true);
+                    setPathState(6);
+                }
                 break;
-//
-//            case 6:
-//                if (!drive.follower.isBusy()) {
-//                    intake.stop();
-//                    drive.follower.followPath(paths.Path5, true);
-//                    setPathState(7);
-//                }
-//                break;
-//
-//            case 7:
-//                if (!drive.follower.isBusy()) {
-//                    shooter.autoShoot();
-//                    setPathState(8);
-//                }
-//                break;
-//
-//            case 8:
-//                if (shooter.isIdle()) {
-//                    intake.setFrontIntake(1);
-//                    drive.follower.followPath(paths.Path6, 0.6, true);
-//                    setPathState(9);
-//                }
-//                break;
-//
-//            case 9:
-//                if (!drive.follower.isBusy()) {
-//                    intake.stop();
-//                    drive.follower.followPath(paths.Path7, true);
-//                    setPathState(10); // Move to idle state
-//                }
-//                break;
-//
-//            case 10:
-//                if (!drive.follower.isBusy()) {
-//                    shooter.autoShoot();
-//                    setPathState(11);
-//                }
-//
-//                break;
-//
-//            case 11:
-//
-//                break;
+
+            case 6:
+                if (!drive.follower.isBusy()) {
+                    intake.stop();
+                    drive.follower.followPath(paths.Path5, true);
+                    setPathState(7);
+                }
+                break;
+
+            case 7:
+                if (!drive.follower.isBusy()) {
+                    shooter.autoShoot(intake);
+                    setPathState(8);
+                }
+                break;
+
+            case 8:
+                if (shooter.isIdle()) {
+                    intake.setRightIntake(1);
+                    drive.follower.followPath(paths.Path6, 0.6, true);
+                    setPathState(9);
+                }
+                break;
+
+            case 9:
+                if (!drive.follower.isBusy()) {
+                    intake.stop();
+                    drive.follower.followPath(paths.Path7, true);
+                    setPathState(10); // Move to idle state
+                }
+                break;
+
+            case 10:
+                if (!drive.follower.isBusy()) {
+                    shooter.autoShoot(intake);
+                    setPathState(11);
+                }
+
+                break;
+
+            case 11:
+
+                break;
         }
     }
 

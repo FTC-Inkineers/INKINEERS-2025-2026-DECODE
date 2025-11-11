@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystem;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -15,22 +16,22 @@ public class IntakeSubsystem {
     }
 
     // If needed, make public methods to set this.
-    private IntakeUnitState frontIntakeState;
-    private IntakeUnitState backIntakeState;
+    private IntakeUnitState leftIntakeState;
+    private IntakeUnitState rightIntakeState;
 
-    private final DcMotor backIntake;
-    private final DcMotor frontIntake;
+    private final DcMotor leftIntake;
+    private final DcMotor rightIntake;
 
     public IntakeSubsystem(HardwareMap hardwareMap) {
 
-        backIntake = hardwareMap.get(DcMotor.class, "leftIntake");
-        frontIntake = hardwareMap.get(DcMotor.class, "rightIntake");
+        leftIntake = hardwareMap.get(DcMotor.class, "leftIntake");
+        rightIntake = hardwareMap.get(DcMotor.class, "rightIntake");
 
-        backIntake.setDirection(DcMotor.Direction.REVERSE);
-        frontIntake.setDirection(DcMotor.Direction.FORWARD);
+        leftIntake.setDirection(DcMotor.Direction.REVERSE);
+        rightIntake.setDirection(DcMotor.Direction.FORWARD);
 
-        frontIntakeState = IntakeUnitState.IDLE;
-        backIntakeState = IntakeUnitState.IDLE;
+        leftIntakeState = IntakeUnitState.IDLE;
+        rightIntakeState = IntakeUnitState.IDLE;
     }
 
     private double power = 1.0;
@@ -41,48 +42,48 @@ public class IntakeSubsystem {
 
         // Determine the state for the FRONT intake
         if (gamepad.left_trigger > 0) {
-            frontIntakeState = IntakeUnitState.INTAKE;
+            leftIntakeState = IntakeUnitState.INTAKE;
         } else if (gamepad.left_bumper) {
-            frontIntakeState = IntakeUnitState.OUTTAKE;
+            leftIntakeState = IntakeUnitState.OUTTAKE;
         } else {
-            frontIntakeState = IntakeUnitState.IDLE;
+            leftIntakeState = IntakeUnitState.IDLE;
         }
 
         // Determine the state for the BACK intake
         if (gamepad.right_trigger > 0) {
-            backIntakeState = IntakeUnitState.INTAKE;
+            rightIntakeState = IntakeUnitState.INTAKE;
         } else if (gamepad.right_bumper) {
-            backIntakeState = IntakeUnitState.OUTTAKE;
+            rightIntakeState = IntakeUnitState.OUTTAKE;
         } else {
-            backIntakeState = IntakeUnitState.IDLE;
+            rightIntakeState = IntakeUnitState.IDLE;
         }
 
 
         // --- 2. Execute State Actions (Motor Logic) ---
 
         // Set power for the FRONT intake based on its state
-        switch (frontIntakeState) {
+        switch (leftIntakeState) {
             case IDLE:
-                frontIntake.setPower(0);
+                leftIntake.setPower(0);
                 break;
             case INTAKE:
-                frontIntake.setPower(power);
+                leftIntake.setPower(power);
                 break;
             case OUTTAKE:
-                frontIntake.setPower(-power * 0.6);
+                leftIntake.setPower(-power * 0.6);
                 break;
         }
 
         // Set power for the BACK intake based on its state
-        switch (backIntakeState) {
+        switch (rightIntakeState) {
             case IDLE:
-                backIntake.setPower(0);
+                rightIntake.setPower(0);
                 break;
             case INTAKE:
-                backIntake.setPower(power);
+                rightIntake.setPower(power);
                 break;
             case OUTTAKE:
-                backIntake.setPower(-power * 0.6);
+                rightIntake.setPower(-power * 0.6);
                 break;
         }
 
@@ -95,17 +96,17 @@ public class IntakeSubsystem {
         power = Math.max(0.0, Math.min(1.0, power));
     }
 
-    public void setFrontIntake(double power) {
-        backIntake.setPower(power);
+    public void setRightIntake(double power) {
+        leftIntake.setPower(power);
     }
 
-    public void setBackIntake(double power) {
-        frontIntake.setPower(power);
+    public void setLeftIntake(double power) {
+        rightIntake.setPower(power);
     }
 
     public void stop() {
-        backIntake.setPower(0);
-        frontIntake.setPower(0);
+        leftIntake.setPower(0);
+        rightIntake.setPower(0);
     }
 
     public void sendAllTelemetry(Telemetry telemetry, boolean enableAll) {

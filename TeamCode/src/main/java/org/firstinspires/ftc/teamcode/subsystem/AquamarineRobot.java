@@ -47,6 +47,7 @@ public class AquamarineRobot {
         shooter.sendAllTelemetry(telemetry, enableAllShooterTelemetry);
         drive.sendAllTelemetry(telemetry, enableALlDriveTelemetry);
         intake.sendAllTelemetry(telemetry, enableAllIntakeTelemetry);
+        drive.sendAprilTagTelemetry(telemetry);
         // Add other relevant telemetry from other subsystems if needed
     }
 }
