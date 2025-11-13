@@ -35,7 +35,7 @@ public class DriveSubsystem {
     // TELEOP
     private Gamepad gamepad1;
     private Gamepad gamepad2;
-    private final ComputerVision CV;
+    private final VisionSubsystem CV;
 
     InputRamper forwardRamper, strafeRamper, turnRamper;
     
@@ -47,14 +47,14 @@ public class DriveSubsystem {
     
     DriveState driveState;
 
-    public DriveSubsystem(HardwareMap hardwareMap, boolean isBlueSide) {
+    public DriveSubsystem(HardwareMap hardwareMap, VisionSubsystem visionSubsystem, boolean isBlueSide) {
 
         follower = Constants.createFollower(hardwareMap, isBlueSide);
         follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
         follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 
-        CV = new ComputerVision(hardwareMap, isBlueSide);
+        CV = visionSubsystem;
     }
 
     public void initTeleOp(Gamepad gamepad1, Gamepad gamepad2) {
@@ -66,6 +66,7 @@ public class DriveSubsystem {
         turnRamper = new InputRamper();
         
         driveState = DriveState.MANUAL;
+        lastManualState = DriveState.MANUAL;
     }
 
     public void initAuto() {
@@ -115,30 +116,31 @@ public class DriveSubsystem {
         }
     }
 
+    DriveState lastManualState;
     private void handleStateTransitions() {
         // HOLD_POSITION has the highest priority. Pressing Y enters this state.
-        if (gamepad1.y || gamepad2.y) {
-            if (driveState != DriveState.HOLD_POSITION) {
+        if (gamepad1.y) {
+            if (gamepad1.yWasPressed()) {
+                if (driveState == DriveState.MANUAL) {
+                    driveState = DriveState.MANUAL_AIM_ASSIST;
+                    lastManualState = DriveState.MANUAL_AIM_ASSIST;
+                    telemetryM.debug("Drive State", "MANUAL -> AIM_ASSIST");
+                } else {
+                    driveState = DriveState.MANUAL;
+                    lastManualState = DriveState.MANUAL;
+                    telemetryM.debug("Drive State", "AIM_ASSIST -> MANUAL");
+                }
+            } else {
                 // Entering HOLD_POSITION for the first time
                 driveState = DriveState.HOLD_POSITION;
-                holdPositionTarget = follower.getPose(); // Set anchor point
+                holdPositionTarget = follower.getPose();
                 telemetryM.debug("Drive State", "ENTERING HOLD_POSITION");
             }
         }
         // If Y is released, go back to MANUAL.
         else if (driveState == DriveState.HOLD_POSITION) {
-            driveState = DriveState.MANUAL;
+            driveState = lastManualState;
             telemetryM.debug("Drive State", "EXITING HOLD_POSITION -> MANUAL");
-        }
-        // Toggle AIM_ASSIST with B button if not holding position
-        else if (gamepad1.yWasPressed() || gamepad2.yWasPressed()) {
-            if (driveState == DriveState.MANUAL) {
-                driveState = DriveState.MANUAL_AIM_ASSIST;
-                telemetryM.debug("Drive State", "MANUAL -> AIM_ASSIST");
-            } else {
-                driveState = DriveState.MANUAL;
-                telemetryM.debug("Drive State", "AIM_ASSIST -> MANUAL");
-            }
         }
     }
 
@@ -165,10 +167,6 @@ public class DriveSubsystem {
             telemetry.addData("velocity", follower.getVelocity());
         }
         telemetry.addData("Drive State", driveState.toString());
-    }
-
-    public void sendAprilTagTelemetry(Telemetry telemetry) {
-        CV.sendTelemetry(telemetry);
     }
 
     /** @noinspection FieldCanBeLocal*/
@@ -207,6 +205,7 @@ public class DriveSubsystem {
         }
     }
 
+    // TODO: use tag Y angle to add an offset
     private double getAprilTagTurnCommand() {
         LLResultTypes.FiducialResult targetTag = CV.getTargetTag();
 
@@ -216,13 +215,15 @@ public class DriveSubsystem {
             return 0.0;
         }
 
+        boolean farShot = targetTag.getTargetYDegrees() < -0.5;
+
         // Error is yaw.
         double currentError = targetTag.getTargetXDegrees();
         FPIDOutput turnOutput = turnController.calculate(currentError);
         double turnPower = turnOutput.total;
 
         // Clamp speed
-        turnPower = Math.max(-0.5, Math.min(0.5, turnPower));
+        turnPower = Math.max(-0.45, Math.min(0.45, turnPower));
 
         telemetryM.debug("LockOn", "yawErr: %.2f", currentError);
         telemetryM.debug("LockOnPID", "P: %.2f, I: %.2f, D: %.2f, Total: %.2f",

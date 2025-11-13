@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.opmode.auto.action;
 
-import static org.firstinspires.ftc.teamcode.subsystem.IntakeSubsystem.IntakeSide.LEFT;
 import static org.firstinspires.ftc.teamcode.subsystem.IntakeSubsystem.IntakeUnitState.IDLE;
 import static org.firstinspires.ftc.teamcode.subsystem.IntakeSubsystem.IntakeUnitState.INTAKE;
 
@@ -8,6 +7,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.subsystem.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.subsystem.ShooterSubsystem;
+import org.firstinspires.ftc.teamcode.subsystem.VisionSubsystem;
 
 /**
  * An action to autonomously shoot one or more rings.
@@ -17,6 +17,7 @@ public class CannonSail implements Sail {
 
     private final ShooterSubsystem shooter;
     private final IntakeSubsystem intake;
+    private final VisionSubsystem.ObeliskMotif motif;
     private final ElapsedTime timer = new ElapsedTime();
 
     // Action phases
@@ -32,9 +33,10 @@ public class CannonSail implements Sail {
 
     private final double SHOOTER_RAMP_UP_TIMEOUT = 1.5;
 
-    public CannonSail(ShooterSubsystem shooter, IntakeSubsystem intake) {
+    public CannonSail(ShooterSubsystem shooter, IntakeSubsystem intake, VisionSubsystem.ObeliskMotif motif) {
         this.shooter = shooter;
         this.intake = intake;
+        this.motif = motif;
     }
 
     @Override

@@ -5,23 +5,37 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.opmode.auto.action.CannonSail;
 import org.firstinspires.ftc.teamcode.opmode.auto.action.Navigator;
-import org.firstinspires.ftc.teamcode.subsystem.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystem.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.subsystem.ShooterSubsystem;
+import org.firstinspires.ftc.teamcode.subsystem.VisionSubsystem;
 
+@SuppressWarnings("FieldCanBeLocal")
 @TeleOp(name = "Sail Testing", group = "Testing")
 public class SailTester extends OpMode {
-    DriveSubsystem drive;
-    ShooterSubsystem shooter;
-    IntakeSubsystem intake;
-    Navigator navigator;
+    private ShooterSubsystem shooter;
+    private IntakeSubsystem intake;
+    private VisionSubsystem vision;
+    private Navigator navigator;
+
+    private VisionSubsystem.ObeliskMotif motif = VisionSubsystem.ObeliskMotif.UNKNOWN;
+
 
     @Override
     public void init() {
-        drive = new DriveSubsystem(hardwareMap, true);
+        vision = new VisionSubsystem(hardwareMap, true);
         shooter = new ShooterSubsystem(hardwareMap);
         intake = new IntakeSubsystem(hardwareMap);
         navigator = new Navigator();
+    }
+
+    @Override
+    public void init_loop() {
+        vision.update();
+        motif = vision.detectObeliskMotif();
+
+        telemetry.addLine("Point the robot at the Obelisk to detect the pattern.");
+        telemetry.addData("Detected Motif", motif);
+        telemetry.update();
     }
 
     @Override
@@ -32,9 +46,10 @@ public class SailTester extends OpMode {
 
 
         if (gamepad1.aWasPressed()) {
-            navigator.setSail(new CannonSail(shooter, intake));
+            navigator.setSail(new CannonSail(shooter, intake, motif));
         }
 
+        telemetry.addData("Pattern Locked", motif);
         telemetry.addData("Shooting Sequence", "Button A");
         telemetry.update();
     }

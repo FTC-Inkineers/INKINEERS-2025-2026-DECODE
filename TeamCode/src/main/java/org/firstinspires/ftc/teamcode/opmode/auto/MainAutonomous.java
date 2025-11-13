@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.opmode.auto.action.Navigator;
 import org.firstinspires.ftc.teamcode.opmode.auto.action.CannonSail;
 import org.firstinspires.ftc.teamcode.pedroPathing.Paths;
+import org.firstinspires.ftc.teamcode.subsystem.VisionSubsystem;
 import org.firstinspires.ftc.teamcode.subsystem.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystem.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.subsystem.ShooterSubsystem;
@@ -18,8 +19,11 @@ public abstract class MainAutonomous extends OpMode {
     DriveSubsystem drive;
     ShooterSubsystem shooter;
     IntakeSubsystem intake;
+    VisionSubsystem vision;
     Paths paths;
     Navigator navigator;
+
+    private VisionSubsystem.ObeliskMotif motif = VisionSubsystem.ObeliskMotif.UNKNOWN;
 
     protected abstract boolean isBlueSide();
 
@@ -28,7 +32,8 @@ public abstract class MainAutonomous extends OpMode {
 
     @Override
     public void init() {
-        drive = new DriveSubsystem(hardwareMap, isBlueSide());
+        vision = new VisionSubsystem(hardwareMap, isBlueSide());
+        drive = new DriveSubsystem(hardwareMap, vision, isBlueSide());
         shooter = new ShooterSubsystem(hardwareMap);
         intake = new IntakeSubsystem(hardwareMap);
         paths = new Paths(drive.follower, isBlueSide());
@@ -41,10 +46,23 @@ public abstract class MainAutonomous extends OpMode {
     }
 
     @Override
+    public void init_loop() {
+        vision.update();
+        motif = vision.detectObeliskMotif();
+
+        telemetry.addLine("Point the robot at the Obelisk to detect the pattern.");
+        telemetry.addData("Detected Motif", motif);
+        telemetry.update();
+    }
+
+    @Override
     public void start() {
         pathTimer.reset();
         opmodeTimer.reset();
         setPathState(0);
+
+        telemetry.addData("Pattern Locked", motif);
+        telemetry.update();
     }
 
     @Override
@@ -62,6 +80,7 @@ public abstract class MainAutonomous extends OpMode {
         telemetry.addData("path state", pathState);
         telemetry.addData("Opmode Time", opmodeTimer.toString());
         telemetry.addData("Path Timer", pathTimer.toString());
+        telemetry.addData("Pattern Locked", motif);
         drive.sendAllTelemetry(telemetry, true);
         shooter.sendAllTelemetry(telemetry, false);
         telemetry.update();
@@ -186,7 +205,7 @@ public abstract class MainAutonomous extends OpMode {
     }
 
     public void autoShoot() {
-        navigator.setSail(new CannonSail(shooter, intake));
+        navigator.setSail(new CannonSail(shooter, intake, motif));
     }
 
     public void autoIntake() {

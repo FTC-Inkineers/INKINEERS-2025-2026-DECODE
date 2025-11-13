@@ -126,6 +126,8 @@ public class Paths {
                 .addPath(new BezierLine(p6_end, p5_end)) // This is the reverse of Path 6
                 .setLinearHeadingInterpolation(p6_end_h, p5_end_h)
                 .build();
+
+        // TODO: move out of shooting zone
     }
 
     /**

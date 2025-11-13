@@ -12,6 +12,7 @@ public class AquamarineRobot {
     private final DriveSubsystem drive;
     private final ShooterSubsystem shooter;
     private final IntakeSubsystem intake;
+    private final VisionSubsystem vision;
 
     public static boolean enableALlDriveTelemetry = false;
     public static boolean enableAllShooterTelemetry = false;
@@ -21,7 +22,8 @@ public class AquamarineRobot {
     private Gamepad gamepad2;
 
     public AquamarineRobot(HardwareMap hardwareMap, boolean isBlueSide) {
-        drive = new DriveSubsystem(hardwareMap, isBlueSide);
+        vision = new VisionSubsystem(hardwareMap, isBlueSide);
+        drive = new DriveSubsystem(hardwareMap, vision, isBlueSide);
         shooter = new ShooterSubsystem(hardwareMap);
         intake = new IntakeSubsystem(hardwareMap);
     }
@@ -47,7 +49,7 @@ public class AquamarineRobot {
         shooter.sendAllTelemetry(telemetry, enableAllShooterTelemetry);
         drive.sendAllTelemetry(telemetry, enableALlDriveTelemetry);
         intake.sendAllTelemetry(telemetry, enableAllIntakeTelemetry);
-        drive.sendAprilTagTelemetry(telemetry);
+        vision.sendTelemetry(telemetry);
         // Add other relevant telemetry from other subsystems if needed
     }
 }

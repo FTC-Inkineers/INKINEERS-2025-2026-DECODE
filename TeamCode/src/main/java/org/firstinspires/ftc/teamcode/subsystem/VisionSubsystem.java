@@ -10,16 +10,27 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
 import java.util.List;
 
-public class ComputerVision {
+public class VisionSubsystem {
     // Alliance-specific AprilTag IDs
     private static final int BLUE_GOAL_ID = 20;
     private static final int RED_GOAL_ID = 24;
+    private static final int OBELISK_GPP_ID = 21;
+    private static final int OBELISK_PGP_ID = 22;
+    private static final int OBELISK_PPG_ID = 23;
+    
+    public enum ObeliskMotif {
+        GPP,
+        PGP,
+        PPG,
+        UNKNOWN
+    }
+    private ObeliskMotif motif = ObeliskMotif.UNKNOWN;
 
     private final Limelight3A limelight;
     private LLResult latestResult;
     private final int targetTagId;
 
-    public ComputerVision(HardwareMap hardwareMap, boolean isBlueSide) {
+    public VisionSubsystem(HardwareMap hardwareMap, boolean isBlueSide) {
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.setPollRateHz(100);
         limelight.start();
@@ -33,6 +44,34 @@ public class ComputerVision {
 
     public void update() {
         latestResult = limelight.getLatestResult();
+    }
+
+    public ObeliskMotif detectObeliskMotif() {
+        if (latestResult == null || latestResult.getFiducialResults().isEmpty()) {
+            return ObeliskMotif.UNKNOWN;
+        }
+
+        List<LLResultTypes.FiducialResult> fiducials = latestResult.getFiducialResults();
+
+        for (LLResultTypes.FiducialResult fiducial : fiducials) {
+            switch (fiducial.getFiducialId()) {
+                case OBELISK_GPP_ID:
+                    motif = ObeliskMotif.GPP;
+                    return motif;
+                case OBELISK_PGP_ID:
+                    motif = ObeliskMotif.PGP;
+                    return motif;
+                case OBELISK_PPG_ID:
+                    motif = ObeliskMotif.PPG;
+                    return motif;
+            }
+        }
+        return ObeliskMotif.UNKNOWN;
+    }
+
+    @SuppressWarnings("unused")
+    public ObeliskMotif getObeliskMotif() {
+        return motif;
     }
 
     public boolean isTargetVisible() {

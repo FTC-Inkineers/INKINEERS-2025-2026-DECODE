@@ -4,15 +4,19 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.subsystem.DriveSubsystem;
+import org.firstinspires.ftc.teamcode.subsystem.VisionSubsystem;
 
 @TeleOp(name="April Tag Drive Test", group="Testing")
 public class AprilTagAlignTest extends OpMode {
 
     private DriveSubsystem drive;
+    private VisionSubsystem vision;
+
 
     @Override
     public void init() {
-        drive = new DriveSubsystem(hardwareMap, true);
+        vision = new VisionSubsystem(hardwareMap, true);
+        drive = new DriveSubsystem(hardwareMap, vision, true);
         drive.initTeleOp(gamepad1, gamepad2);
     }
 
@@ -25,7 +29,7 @@ public class AprilTagAlignTest extends OpMode {
     public void loop() {
         drive.runTeleOp();
         drive.sendAllTelemetry(telemetry, false);
-        drive.sendAprilTagTelemetry(telemetry);
+        vision.sendTelemetry(telemetry);
         telemetry.update();
     }
 }
