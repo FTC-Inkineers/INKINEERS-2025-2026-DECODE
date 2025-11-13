@@ -55,8 +55,9 @@ public class CannonSail implements Sail {
 
     @Override
     public void initialize() {
-        // Start the process by revving up the shooter
+        // Start the process by revving up the shooter and slowly intake
         shooter.setTargetRPM(shooter.getStationaryRPM());
+        intake.setPower(0.5);
         currentState = ShootState.RAMP_UP;
         timer.reset();
     }
@@ -72,7 +73,6 @@ public class CannonSail implements Sail {
                 switch (motif) {
                     case GPP: // Store purple
                         shooter.reverseTrigger();
-                        intake.setIntake(LEFT, INTAKE);
                         break;
                     case PGP:
                     case PPG:
@@ -80,7 +80,9 @@ public class CannonSail implements Sail {
                 }
                 // Wait for the shooter to reach its target RPM or timeout
                 if (shooter.isReady() || timer.seconds() > SHOOTER_RAMP_UP_TIMEOUT) {
+                    intake.setPower(0.96); // Back to default power
                     intake.stop();
+                    shooter.releaseTrigger();
                     currentState = ShootState.FIRE_1;
                     timer.reset();
                 }
@@ -92,10 +94,11 @@ public class CannonSail implements Sail {
                 switch (motif) {
                     case GPP: // Green is first: give time to fire left
                         if (timer.seconds() > 0.8) {
+                            intake.stop();
                             shooter.pullTrigger();
                             // 2nd shot needs more power. Manual correction
                             if (timer.seconds() > 1.1)
-                                shooter.setTargetRPM(shooter.getStationaryRPM() + 700);
+                                shooter.setTargetRPM(shooter.getStationaryRPM());
                         } else {
                             intake.setIntake(LEFT, INTAKE);
                         }

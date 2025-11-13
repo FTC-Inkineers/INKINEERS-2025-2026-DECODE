@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsystem;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -236,6 +235,10 @@ public class ShooterSubsystem {
 
     public void releaseTrigger() {
         triggerMotor.setPower(0.0);
+    }
+
+    public void reverseTrigger(double p) {
+        triggerMotor.setPower(-Math.abs(p));
     }
 
     public double getTimerSeconds() {

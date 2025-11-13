@@ -34,6 +34,10 @@ public class IntakeSubsystem {
 
     private double power = 0.96;
 
+    public void setPower(double power) {
+        this.power = power;
+    }
+
     public void runTeleOp(Gamepad gamepad) {
         // --- 1. Handle State Transitions (Controller Logic) ---
         // This logic is now split into two independent blocks.
