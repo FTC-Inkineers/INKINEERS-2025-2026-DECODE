@@ -49,8 +49,15 @@ public class SailTester extends OpMode {
             navigator.setSail(new CannonSail(shooter, intake, motif));
         }
 
+        if (gamepad1.y) {
+            vision.update();
+            motif = vision.detectObeliskMotif();
+        }
+
         telemetry.addData("Pattern Locked", motif);
+        telemetry.addData("Redetect Tag", "Button Y");
         telemetry.addData("Shooting Sequence", "Button A");
+        telemetry.addData("TargetRPM", shooter.getTargetRPM());
         telemetry.update();
     }
 }

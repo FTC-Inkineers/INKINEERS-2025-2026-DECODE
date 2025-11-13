@@ -35,7 +35,7 @@ public class DriveSubsystem {
     // TELEOP
     private Gamepad gamepad1;
     private Gamepad gamepad2;
-    private final VisionSubsystem CV;
+    private final VisionSubsystem vision;
 
     InputRamper forwardRamper, strafeRamper, turnRamper;
     
@@ -54,7 +54,7 @@ public class DriveSubsystem {
         follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 
-        CV = visionSubsystem;
+        vision = visionSubsystem;
     }
 
     public void initTeleOp(Gamepad gamepad1, Gamepad gamepad2) {
@@ -82,7 +82,6 @@ public class DriveSubsystem {
 
     private void updateSystems() {
         follower.update();
-        CV.update();
         telemetryM.update();
         
         // Update PID Gains Live
@@ -150,7 +149,7 @@ public class DriveSubsystem {
         double leftXInput = strafeRamper.rampInput(gamepad1.left_stick_x);
         double rightXInput;
 
-        if (withAimAssist && CV.isTargetVisible()) {
+        if (withAimAssist && vision.isTargetVisible()) {
             rightXInput = getAprilTagTurnCommand();
         } else {
             rightXInput = turnRamper.rampInput(gamepad1.right_stick_x) * (shooterIsActive ? 0.4 : 0.8);
@@ -207,7 +206,7 @@ public class DriveSubsystem {
 
     // TODO: use tag Y angle to add an offset
     private double getAprilTagTurnCommand() {
-        LLResultTypes.FiducialResult targetTag = CV.getTargetTag();
+        LLResultTypes.FiducialResult targetTag = vision.getTargetTag();
 
         if (targetTag == null) {
             telemetryM.debug("Lock On", "No tags detected");

@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode.subsystem;
 
 import com.acmerobotics.dashboard.config.Config;
+import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -20,7 +22,7 @@ public class ShooterSubsystem {
 
     private final int SHOOTER_TICKS_PER_REV = 28;
     private final double MAX_RPM = 6000;
-    private double STATIONARY_RPM_FAR = 3300;
+    private double STATIONARY_RPM_FAR = 3200;
     private final double STATIONARY_RPM_CLOSE = 2800;
 
     private final double HOOD_MAX_EXTEND = 1;
@@ -82,6 +84,11 @@ public class ShooterSubsystem {
         targetPower = output.total;
     }
 
+    private VisionSubsystem vision;
+    public void initTeleOp(VisionSubsystem vision) {
+        this.vision = vision;
+    }
+
     public void runTeleOp(Gamepad gamepad) {
         // Ensure changes from FTC Dashboard are always applied.
         shooterController.setGains(kF, kP, kI, kD);
@@ -108,6 +115,7 @@ public class ShooterSubsystem {
     }
 
     public void runShooter(Gamepad gamepad) {
+
         // Adjust Target RPM
         if (gamepad.dpadUpWasPressed()) {
             STATIONARY_RPM_FAR += 100;
@@ -117,7 +125,10 @@ public class ShooterSubsystem {
 
         // Shooter (Flywheel) Control
         if (gamepad.right_trigger > 0 || gamepad.left_trigger > 0) {
-            if (gamepad.right_trigger > 0)
+            LLResultTypes.FiducialResult targetTag = vision.getTargetTag();
+            if (targetTag != null)
+                targetRPM = (targetTag.getTargetYDegrees() < -0.5) ? STATIONARY_RPM_FAR : STATIONARY_RPM_CLOSE;
+            else if (gamepad.right_trigger > 0)
                 targetRPM = STATIONARY_RPM_FAR;
             else if (gamepad.left_trigger > 0)
                 targetRPM = STATIONARY_RPM_CLOSE;

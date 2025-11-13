@@ -33,6 +33,7 @@ public class AquamarineRobot {
         this.gamepad2 = gamepad2;
 
         drive.initTeleOp(gamepad1, gamepad2);
+        shooter.initTeleOp(vision);
     }
 
     public void start() {
@@ -40,6 +41,7 @@ public class AquamarineRobot {
     }
 
     public void runTeleOp() {
+        vision.update();
         drive.runTeleOp(shooter.isActive());
         shooter.runTeleOp(gamepad2);
         intake.runTeleOp(gamepad1);

@@ -137,14 +137,6 @@ public class IntakeSubsystem {
         }
     }
 
-    public void setRightIntakeState(IntakeUnitState state) {
-        this.rightIntakeState = state;
-    }
-
-    public void setLeftIntakeState(IntakeUnitState state) {
-        this.leftIntakeState = state;
-    }
-
     public void stop() {
         leftIntakeState = IntakeUnitState.IDLE;
         rightIntakeState = IntakeUnitState.IDLE;
