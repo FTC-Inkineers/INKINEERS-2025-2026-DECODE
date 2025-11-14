@@ -18,13 +18,13 @@ public class Paths {
     // START to Shoot pose 1
     private Pose p1_start = new Pose(56.000, 8.000);
     private Pose p1_end   = new Pose(56.000, 17.000);
-    private double p1_start_h = Math.toRadians(90);
+    private double p1_start_h = Math.toRadians(180);
     private double p1_end_h   = Math.toRadians(120);
 
     // Shoot pose 1 to Intake 1
     private Pose p2_c1 = new Pose(60.000, 42.000);
     private Pose p2_end = new Pose(12.000, 36.000);
-    private double p2_end_h = Math.toRadians(90);
+    private double p2_end_h = Math.toRadians(180);
 
     // Intake 1 to Shoot pose 2
     private Pose p3_c1 = new Pose(56.000, 36.000);
@@ -33,7 +33,7 @@ public class Paths {
     // Shoot pose 2 to Intake 2
     private Pose p4_c1 = new Pose(60.000, 64.000);
     private Pose p4_end = new Pose(12.000, 60.000);
-    private double p4_end_h = Math.toRadians(90);
+    private double p4_end_h = Math.toRadians(180);
 
     // Intake 2 to Shoot pose 3
     private Pose p5_c1 = new Pose(56.000, 64.000);
@@ -42,7 +42,7 @@ public class Paths {
 
     // Shoot pose 3 to Intake 3
     private Pose p6_end = new Pose(12.000, 84.000);
-    private double p6_end_h = Math.toRadians(90);
+    private double p6_end_h = Math.toRadians(180);
     //endregion
 
     // PathChain member variables, to be initialized in the constructor
