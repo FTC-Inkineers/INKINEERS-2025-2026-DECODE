@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.opmode.auto.action.CannonSail;
 import org.firstinspires.ftc.teamcode.opmode.auto.action.Navigator;
 import org.firstinspires.ftc.teamcode.subsystem.IntakeSubsystem;
+import org.firstinspires.ftc.teamcode.subsystem.RGBSubsystem;
 import org.firstinspires.ftc.teamcode.subsystem.ShooterSubsystem;
 import org.firstinspires.ftc.teamcode.subsystem.VisionSubsystem;
 
@@ -15,6 +16,7 @@ public class SailTester extends OpMode {
     private ShooterSubsystem shooter;
     private IntakeSubsystem intake;
     private VisionSubsystem vision;
+    private RGBSubsystem rgb;
     private Navigator navigator;
 
     private VisionSubsystem.ObeliskMotif motif = VisionSubsystem.ObeliskMotif.UNKNOWN;
@@ -23,6 +25,7 @@ public class SailTester extends OpMode {
     @Override
     public void init() {
         vision = new VisionSubsystem(hardwareMap, true);
+        rgb = new RGBSubsystem(hardwareMap);
         shooter = new ShooterSubsystem(hardwareMap);
         intake = new IntakeSubsystem(hardwareMap);
         navigator = new Navigator();
@@ -42,6 +45,7 @@ public class SailTester extends OpMode {
     public void loop() {
         shooter.runAuto();
         intake.runAuto();
+        rgb.runAuto(shooter.getCurrentRPM());
         navigator.update();
 
 

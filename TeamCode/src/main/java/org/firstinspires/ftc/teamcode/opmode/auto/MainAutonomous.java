@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.opmode.auto.action.Navigator;
 import org.firstinspires.ftc.teamcode.opmode.auto.action.CannonSail;
 import org.firstinspires.ftc.teamcode.pedroPathing.Paths;
+import org.firstinspires.ftc.teamcode.subsystem.RGBSubsystem;
 import org.firstinspires.ftc.teamcode.subsystem.VisionSubsystem;
 import org.firstinspires.ftc.teamcode.subsystem.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystem.IntakeSubsystem;
@@ -20,6 +21,7 @@ public abstract class MainAutonomous extends OpMode {
     ShooterSubsystem shooter;
     IntakeSubsystem intake;
     VisionSubsystem vision;
+    RGBSubsystem rgb;
     Paths paths;
     Navigator navigator;
 
@@ -33,6 +35,7 @@ public abstract class MainAutonomous extends OpMode {
     @Override
     public void init() {
         vision = new VisionSubsystem(hardwareMap, isBlueSide());
+        rgb = new RGBSubsystem(hardwareMap);
         drive = new DriveSubsystem(hardwareMap, vision, isBlueSide());
         shooter = new ShooterSubsystem(hardwareMap);
         intake = new IntakeSubsystem(hardwareMap);
@@ -72,6 +75,7 @@ public abstract class MainAutonomous extends OpMode {
         drive.follower.update();
         shooter.runAuto();
         intake.runAuto();
+        rgb.runAuto(shooter.getCurrentRPM());
         navigator.update();
 
         autonomousPathUpdate();

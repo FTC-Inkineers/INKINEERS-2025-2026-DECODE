@@ -96,9 +96,6 @@ public class CannonSail implements Sail {
                         if (timer.seconds() > 0.8) {
                             intake.stop();
                             shooter.pullTrigger();
-                            // 2nd shot needs more power. Manual correction
-                            if (timer.seconds() > 1.1)
-                                shooter.setTargetRPM(shooter.getStationaryRPM());
                         } else {
                             intake.setIntake(LEFT, INTAKE);
                         }

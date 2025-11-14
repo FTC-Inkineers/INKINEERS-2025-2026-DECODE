@@ -13,6 +13,7 @@ public class AquamarineRobot {
     private final ShooterSubsystem shooter;
     private final IntakeSubsystem intake;
     private final VisionSubsystem vision;
+    private final RGBSubsystem rgb;
 
     public static boolean enableALlDriveTelemetry = false;
     public static boolean enableAllShooterTelemetry = false;
@@ -23,6 +24,7 @@ public class AquamarineRobot {
 
     public AquamarineRobot(HardwareMap hardwareMap, boolean isBlueSide) {
         vision = new VisionSubsystem(hardwareMap, isBlueSide);
+        rgb = new RGBSubsystem(hardwareMap);
         drive = new DriveSubsystem(hardwareMap, vision, isBlueSide);
         shooter = new ShooterSubsystem(hardwareMap);
         intake = new IntakeSubsystem(hardwareMap);
@@ -38,6 +40,7 @@ public class AquamarineRobot {
 
     public void start() {
         drive.start();
+        rgb.resetPulseTimer();
     }
 
     public void runTeleOp() {
@@ -50,6 +53,7 @@ public class AquamarineRobot {
     public void sendTelemetry(Telemetry telemetry) {
         shooter.sendAllTelemetry(telemetry, enableAllShooterTelemetry);
         drive.sendAllTelemetry(telemetry, enableALlDriveTelemetry);
+        drive.runRGB(rgb);
         intake.sendAllTelemetry(telemetry, enableAllIntakeTelemetry);
         vision.sendTelemetry(telemetry);
         // Add other relevant telemetry from other subsystems if needed

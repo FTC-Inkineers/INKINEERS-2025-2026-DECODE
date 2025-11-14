@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsystem;
 
+import static org.firstinspires.ftc.teamcode.RobotConstants.MAX_FLYWHEEL_RPM;
+
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -20,7 +22,7 @@ public class ShooterSubsystem {
     private final Servo hoodServo;
 
     private final int SHOOTER_TICKS_PER_REV = 28;
-    private final double MAX_RPM = 6000;
+    private final double MAX_RPM = MAX_FLYWHEEL_RPM;
     private double STATIONARY_RPM_FAR = 3200;
     private final double STATIONARY_RPM_CLOSE = 2800;
 

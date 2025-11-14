@@ -20,6 +20,8 @@ public class DriveSubsystem {
     public static double kP_strafe = 0.01, kD_strafe = 0.00;     // Left/right
     public static double kP_turn = 0.01, kD_turn = 0.00;         // Turn
 
+    public static double maxTurnPower = 0.45;
+
     private final FPIDController driveController = new FPIDController.Builder(kP_drive).withD(kD_drive).build();
     private final FPIDController strafeController = new FPIDController.Builder(kP_strafe).withD(kD_strafe).build();
     private final FPIDController turnController = new FPIDController.Builder(kP_turn).withD(kD_turn).build();
@@ -83,7 +85,7 @@ public class DriveSubsystem {
     private void updateSystems() {
         follower.update();
         telemetryM.update();
-        
+
         // Update PID Gains Live
         driveController.setGains(0, kP_drive, 0, kD_drive);
         strafeController.setGains(0, kP_strafe, 0, kD_strafe);
@@ -93,6 +95,7 @@ public class DriveSubsystem {
     public void runTeleOp() {
         runTeleOp(false);
     }
+
     public void runTeleOp(boolean shooterIsActive) {
         updateSystems();
         handleStateTransitions();
@@ -143,7 +146,6 @@ public class DriveSubsystem {
         }
     }
 
-
     private void handleManualDrive(boolean withAimAssist, boolean shooterIsActive) {
         double leftYInput = forwardRamper.rampInput(gamepad1.left_stick_y);
         double leftXInput = strafeRamper.rampInput(gamepad1.left_stick_x);
@@ -157,6 +159,10 @@ public class DriveSubsystem {
 
         // Field-centric control for manual driving
         follower.setTeleOpDrive(-leftYInput, -leftXInput, -rightXInput, false);
+    }
+
+    public void runRGB(RGBSubsystem rgb) {
+        rgb.runTeleOp(driveState, lockedOn);
     }
 
     public void sendAllTelemetry(Telemetry telemetry, boolean enableAll) {
@@ -205,6 +211,7 @@ public class DriveSubsystem {
     }
 
     // TODO: use tag Y angle to add an offset
+    private boolean lockedOn = false;
     private double getAprilTagTurnCommand() {
         LLResultTypes.FiducialResult targetTag = vision.getTargetTag();
 
@@ -218,11 +225,12 @@ public class DriveSubsystem {
 
         // Error is yaw.
         double currentError = targetTag.getTargetXDegrees();
+        lockedOn = Math.abs(currentError) < 3.0;
         FPIDOutput turnOutput = turnController.calculate(currentError);
         double turnPower = turnOutput.total;
 
         // Clamp speed
-        turnPower = Math.max(-0.45, Math.min(0.45, turnPower));
+        turnPower = Math.max(-maxTurnPower, Math.min(maxTurnPower, turnPower));
 
         telemetryM.debug("LockOn", "yawErr: %.2f", currentError);
         telemetryM.debug("LockOnPID", "P: %.2f, I: %.2f, D: %.2f, Total: %.2f",
