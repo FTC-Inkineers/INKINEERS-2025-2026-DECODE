@@ -171,7 +171,8 @@ public class DriveSubsystem {
             telemetry.addData("position", follower.getPose());
             telemetry.addData("velocity", follower.getVelocity());
         }
-        telemetry.addData("Drive State", driveState.toString());
+        if (driveState != null)
+            telemetry.addData("Drive State", driveState.toString());
     }
 
     /** @noinspection FieldCanBeLocal*/

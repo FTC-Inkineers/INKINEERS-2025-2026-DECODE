@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
+import static org.firstinspires.ftc.teamcode.RobotConstants.DEFAULT_BRAKING_STRENGTH;
+import static org.firstinspires.ftc.teamcode.RobotConstants.DEFAULT_VELOCITY_CONSTRAINT;
+
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
@@ -89,42 +92,56 @@ public class Paths {
         Path1 = follower.pathBuilder()
                 .addPath(new BezierLine(p1_start, p1_end))
                 .setLinearHeadingInterpolation(p1_start_h, p1_end_h)
+                .setBrakingStrength(DEFAULT_BRAKING_STRENGTH)
+                .setVelocityConstraint(DEFAULT_VELOCITY_CONSTRAINT)
                 .build();
 
         // Shoot pose 1 to Intake 1
         Path2 = follower.pathBuilder()
                 .addPath(new BezierCurve(p1_end, p2_c1, p2_end))
                 .setLinearHeadingInterpolation(p1_end_h, p2_end_h)
+                .setBrakingStrength(DEFAULT_BRAKING_STRENGTH)
+                .setVelocityConstraint(DEFAULT_VELOCITY_CONSTRAINT)
                 .build();
 
         // Intake 1 to Shoot pose 2
         Path3 = follower.pathBuilder()
                 .addPath(new BezierCurve(p2_end, p3_c1, p1_end))
                 .setLinearHeadingInterpolation(p2_end_h, p3_end_h)
+                .setBrakingStrength(DEFAULT_BRAKING_STRENGTH)
+                .setVelocityConstraint(DEFAULT_VELOCITY_CONSTRAINT)
                 .build();
 
         // Shoot pose 2 to Intake 2
         Path4 = follower.pathBuilder()
                 .addPath(new BezierCurve(p1_end, p4_c1, p4_end))
                 .setLinearHeadingInterpolation(p3_end_h, p4_end_h)
+                .setBrakingStrength(DEFAULT_BRAKING_STRENGTH)
+                .setVelocityConstraint(DEFAULT_VELOCITY_CONSTRAINT)
                 .build();
 
         // Intake 2 to Shoot pose 3
         Path5 = follower.pathBuilder()
                 .addPath(new BezierCurve(p4_end, p5_c1, p5_end))
                 .setLinearHeadingInterpolation(p4_end_h, p5_end_h)
+                .setBrakingStrength(DEFAULT_BRAKING_STRENGTH)
+                .setVelocityConstraint(DEFAULT_VELOCITY_CONSTRAINT)
                 .build();
 
         // Shoot pose 3 to Intake 3
         Path6 = follower.pathBuilder()
                 .addPath(new BezierLine(p5_end, p6_end))
                 .setLinearHeadingInterpolation(p5_end_h, p6_end_h)
+                .setBrakingStrength(DEFAULT_BRAKING_STRENGTH)
+                .setVelocityConstraint(DEFAULT_VELOCITY_CONSTRAINT)
                 .build();
 
         // Intake 3 to Shoot pose 4
         Path7 = follower.pathBuilder()
                 .addPath(new BezierLine(p6_end, p5_end)) // This is the reverse of Path 6
                 .setLinearHeadingInterpolation(p6_end_h, p5_end_h)
+                .setBrakingStrength(DEFAULT_BRAKING_STRENGTH)
+                .setVelocityConstraint(DEFAULT_VELOCITY_CONSTRAINT)
                 .build();
 
         // TODO: move out of shooting zone

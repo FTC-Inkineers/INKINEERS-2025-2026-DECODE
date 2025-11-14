@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
+import static org.firstinspires.ftc.teamcode.RobotConstants.DEFAULT_VELOCITY_CONSTRAINT;
+import static org.firstinspires.ftc.teamcode.RobotConstants.xVelocity;
+import static org.firstinspires.ftc.teamcode.RobotConstants.yVelocity;
 import static org.firstinspires.ftc.teamcode.pedroPathing.Tuning.changes;
 import static org.firstinspires.ftc.teamcode.pedroPathing.Tuning.drawCurrent;
 import static org.firstinspires.ftc.teamcode.pedroPathing.Tuning.drawCurrentAndHistory;
@@ -7,6 +10,7 @@ import static org.firstinspires.ftc.teamcode.pedroPathing.Tuning.follower;
 import static org.firstinspires.ftc.teamcode.pedroPathing.Tuning.stopRobot;
 import static org.firstinspires.ftc.teamcode.pedroPathing.Tuning.telemetryM;
 
+import com.acmerobotics.dashboard.config.Config;
 import com.bylazar.configurables.PanelsConfigurables;
 import com.bylazar.configurables.annotations.Configurable;
 import com.bylazar.configurables.annotations.IgnoreConfigurable;
@@ -33,10 +37,12 @@ import java.util.List;
  * @author Baron Henderson - 20077 The Indubitables
  * @version 1.0, 6/26/2025
  */
+@Config
 @Configurable
 @TeleOp(name = "Tuning", group = "Pedro Pathing")
 public class Tuning extends SelectableOpMode {
     public static Follower follower;
+    public static boolean BLUE_SIDE = true;
 
     @IgnoreConfigurable
     static PoseHistory poseHistory;
@@ -78,10 +84,10 @@ public class Tuning extends SelectableOpMode {
     @Override
     public void onSelect() {
         if (follower == null) {
-            follower = Constants.createFollower(hardwareMap);
+            follower = Constants.createFollower(hardwareMap, BLUE_SIDE);
             PanelsConfigurables.INSTANCE.refreshClass(this);
         } else {
-            follower = Constants.createFollower(hardwareMap);
+            follower = Constants.createFollower(hardwareMap, BLUE_SIDE);
         }
 
         follower.setStartingPose(new Pose());
@@ -176,8 +182,9 @@ class LocalizationTest extends OpMode {
  * @author Baron Henderson - 20077 The Indubitables
  * @version 1.0, 5/6/2024
  */
+@Configurable
 class ForwardTuner extends OpMode {
-    public static double DISTANCE = 48;
+    public static double DISTANCE = 90;
 
     @Override
     public void init() {
@@ -223,8 +230,9 @@ class ForwardTuner extends OpMode {
  * @author Baron Henderson - 20077 The Indubitables
  * @version 2.0, 6/26/2025
  */
+@Configurable
 class LateralTuner extends OpMode {
-    public static double DISTANCE = 48;
+    public static double DISTANCE = 40;
 
     @Override
     public void init() {
@@ -320,9 +328,10 @@ class TurnTuner extends OpMode {
  * @author Baron Henderson - 20077 The Indubitables
  * @version 1.0, 3/13/2024
  */
+@Configurable
 class ForwardVelocityTuner extends OpMode {
     private final ArrayList<Double> velocities = new ArrayList<>();
-    public static double DISTANCE = 48;
+    public static double DISTANCE = 90;
     public static double RECORD_NUMBER = 10;
 
     private boolean end;
@@ -425,10 +434,11 @@ class ForwardVelocityTuner extends OpMode {
  * @author Baron Henderson - 20077 The Indubitables
  * @version 1.0, 3/13/2024
  */
+@Configurable
 class LateralVelocityTuner extends OpMode {
     private final ArrayList<Double> velocities = new ArrayList<>();
 
-    public static double DISTANCE = 48;
+    public static double DISTANCE = 90;
     public static double RECORD_NUMBER = 10;
 
     private boolean end;
@@ -525,9 +535,10 @@ class LateralVelocityTuner extends OpMode {
  * @author Harrison Womack - 10158 Scott's Bots
  * @version 1.0, 3/13/2024
  */
+@Configurable
 class ForwardZeroPowerAccelerationTuner extends OpMode {
     private final ArrayList<Double> accelerations = new ArrayList<>();
-    public static double VELOCITY = 30;
+    public static double VELOCITY = xVelocity - 2.0;
 
     private double previousVelocity;
     private long previousTimeNano;
@@ -629,9 +640,10 @@ class ForwardZeroPowerAccelerationTuner extends OpMode {
  * @author Baron Henderson - 20077 The Indubitables
  * @version 1.0, 3/13/2024
  */
+@Configurable
 class LateralZeroPowerAccelerationTuner extends OpMode {
     private final ArrayList<Double> accelerations = new ArrayList<>();
-    public static double VELOCITY = 30;
+    public static double VELOCITY = yVelocity - 2.0;
     private double previousVelocity;
     private long previousTimeNano;
     private boolean stopping;
@@ -726,6 +738,7 @@ class LateralZeroPowerAccelerationTuner extends OpMode {
  * @author Harrison Womack - 10158 Scott's Bots
  * @version 1.0, 3/12/2024
  */
+@Configurable
 class TranslationalTuner extends OpMode {
     public static double DISTANCE = 40;
     private boolean forward = true;
@@ -790,6 +803,7 @@ class TranslationalTuner extends OpMode {
  * @author Harrison Womack - 10158 Scott's Bots
  * @version 1.0, 3/12/2024
  */
+@Configurable
 class HeadingTuner extends OpMode {
     public static double DISTANCE = 40;
     private boolean forward = true;
@@ -858,6 +872,8 @@ class HeadingTuner extends OpMode {
  * @author Harrison Womack - 10158 Scott's Bots
  * @version 1.0, 3/12/2024
  */
+@Config
+@Configurable
 class DriveTuner extends OpMode {
     public static double DISTANCE = 40;
     private boolean forward = true;
@@ -936,8 +952,9 @@ class DriveTuner extends OpMode {
  * @author Harrison Womack - 10158 Scott's Bots
  * @version 1.0, 3/12/2024
  */
+@Configurable
 class Line extends OpMode {
-    public static double DISTANCE = 40;
+    public static double DISTANCE = 60;
     private boolean forward = true;
 
     private Path forwards;
@@ -961,8 +978,12 @@ class Line extends OpMode {
     public void start() {
         follower.activateAllPIDFs();
         forwards = new Path(new BezierLine(new Pose(0,0), new Pose(DISTANCE,0)));
+        forwards.setBrakingStrength(0.8);
+        forwards.setVelocityConstraint(DEFAULT_VELOCITY_CONSTRAINT);
         forwards.setConstantHeadingInterpolation(0);
         backwards = new Path(new BezierLine(new Pose(DISTANCE,0), new Pose(0,0)));
+        backwards.setBrakingStrength(0.8);
+        backwards.setVelocityConstraint(DEFAULT_VELOCITY_CONSTRAINT);
         backwards.setConstantHeadingInterpolation(0);
         follower.followPath(forwards);
     }
@@ -1001,6 +1022,7 @@ class Line extends OpMode {
  * @author Harrison Womack - 10158 Scott's Bots
  * @version 1.0, 3/13/2024
  */
+@Configurable
 class CentripetalTuner extends OpMode {
     public static double DISTANCE = 20;
     private boolean forward = true;
@@ -1030,6 +1052,9 @@ class CentripetalTuner extends OpMode {
         follower.activateAllPIDFs();
         forwards = new Path(new BezierCurve(new Pose(), new Pose(Math.abs(DISTANCE),0), new Pose(Math.abs(DISTANCE),DISTANCE)));
         backwards = new Path(new BezierCurve(new Pose(Math.abs(DISTANCE),DISTANCE), new Pose(Math.abs(DISTANCE),0), new Pose(0,0)));
+
+        forwards.setBrakingStrength(0.8);
+        backwards.setBrakingStrength(0.8);
 
         backwards.setTangentHeadingInterpolation();
         backwards.reverseHeadingInterpolation();
