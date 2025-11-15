@@ -4,6 +4,8 @@ import static org.firstinspires.ftc.teamcode.subsystem.IntakeSubsystem.IntakeSid
 import static org.firstinspires.ftc.teamcode.subsystem.IntakeSubsystem.IntakeSide.RIGHT;
 import static org.firstinspires.ftc.teamcode.subsystem.IntakeSubsystem.IntakeUnitState.INTAKE;
 
+import androidx.annotation.Nullable;
+
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -41,7 +43,8 @@ public abstract class MainFarAutonomous extends OpMode {
 
     // Timer variables
 
-    private ElapsedTime pathTimer, opmodeTimer;
+    private ElapsedTime pathTimer, opmodeTimer, actionTimer;
+    private double delayTime = 0.0;
     private int pathState;
 
     private enum CycleState {
@@ -67,6 +70,7 @@ public abstract class MainFarAutonomous extends OpMode {
 
         pathTimer = new ElapsedTime();
         opmodeTimer = new ElapsedTime();
+        actionTimer = new ElapsedTime();
     }
 
     @Override
@@ -74,8 +78,14 @@ public abstract class MainFarAutonomous extends OpMode {
         vision.update();
         motif = vision.detectObeliskMotif();
 
+        if (gamepad1.rightBumperWasPressed())
+            delayTime += 1.0;
+        if (gamepad1.leftBumperWasPressed())
+            delayTime -= 1.0;
+
         telemetry.addLine("Point the robot at the Obelisk to detect the pattern.");
         telemetry.addData("Detected Motif", motif);
+        telemetry.addData("Delay Seconds", delayTime);
         telemetry.update();
     }
 
@@ -83,7 +93,8 @@ public abstract class MainFarAutonomous extends OpMode {
     public void start() {
         pathTimer.reset();
         opmodeTimer.reset();
-        setPathState(0);
+        actionTimer.reset();
+        setPathState(-1);
 
         telemetry.addData("Pattern Locked", motif);
         telemetry.update();
@@ -106,6 +117,7 @@ public abstract class MainFarAutonomous extends OpMode {
         telemetry.addData("Opmode Time", opmodeTimer.toString());
         telemetry.addData("Path Timer", pathTimer.toString());
         telemetry.addData("Pattern Locked", motif);
+        telemetry.addData("SHOOTING_INDEX", index);
         drive.sendAllTelemetry(telemetry, true);
         shooter.sendAllTelemetry(telemetry, false);
         telemetry.update();
@@ -115,6 +127,11 @@ public abstract class MainFarAutonomous extends OpMode {
         Species variant = getVariant(); // Set the variant here
 
         switch(pathState) {
+            case -1:
+                // Wait for our alliance if needed
+                if (opmodeTimer.seconds() > delayTime)
+                    setPathState(0);
+                break;
             case 0:
                 // First cycle (Far Shot)
                 if (runCycle(paths.Path1, paths.Path2, true)) {
@@ -130,30 +147,44 @@ public abstract class MainFarAutonomous extends OpMode {
                 break;
 
             case 2:
-                // Third cycle logic depends on the selected variant
+                // Third cycle (Far OR Close Shot)
                 if (variant == Species.SOLO) {
                     // Third cycle (Close Shot)
                     if (runCycle(paths.Path5, paths.Path6, false)) {
                         setPathState(3); // Move to park after 3rd cycle
                     }
                 } else {
-                    setPathState(3);
+                    if (runCycle(paths.Path5, null, true)) {
+                        setPathState(4);
+                    }
                 }
                 break;
 
             case 3:
-                park();
-                setPathState(4);
-                break;
-
-            case 4:
-                // Wait for parking to finish
-                if (!drive.follower.isBusy()) {
-                    setPathState(5);
+                // Fourth cycle logic depends on the selected variant
+                if (variant == Species.SOLO) {
+                    // Third cycle (Close Shot)
+                    if (runCycle(paths.Path7, null, false)) {
+                        setPathState(4); // Move to park after 3rd cycle
+                    }
+                } else {
+                    setPathState(4);
                 }
                 break;
 
+            case 4:
+                park();
+                setPathState(5);
+                break;
+
             case 5:
+                // Wait for parking to finish
+                if (!drive.follower.isBusy()) {
+                    setPathState(6);
+                }
+                break;
+
+            case 6:
                 // Opmode finished
                 break;
         }
@@ -166,11 +197,11 @@ public abstract class MainFarAutonomous extends OpMode {
         cycleState = CycleState.IDLE; // Reset cycle state machine for the new path state
     }
 
-    private boolean runCycle(PathChain toShootPath, PathChain toIntakePath, boolean isFarShot) {
+    private boolean runCycle(PathChain toShootPath, @Nullable PathChain toIntakePath, boolean isFarShot) {
         switch (cycleState) {
             case IDLE:
                 // Start moving to the shooting position and spin up the shooter
-                drive.follower.followPath(toShootPath, 0.6, true);
+                drive.follower.followPath(toShootPath, 0.8, true);
                 shooter.setTargetRPM(isFarShot ? shooter.getStationaryRPM_Far() : shooter.getStationaryRPM_Close());
                 cycleState = CycleState.MOVING_TO_SHOOT;
                 break;
@@ -178,9 +209,13 @@ public abstract class MainFarAutonomous extends OpMode {
             case MOVING_TO_SHOOT:
                 // Continue spinning up the shooter while moving
                 shooter.updateShooterPower();
+                // Stop intake 0.5 seconds later to ensure elements
+                if (actionTimer.seconds() > 0.5)
+                    intake.stop();
                 // When the robot arrives, shoot
                 if (!drive.follower.isBusy()) {
-                    autoShoot(isFarShot);
+                    autoShoot(index, isFarShot);
+                    index += 1;
                     cycleState = CycleState.SHOOTING;
                 }
                 break;
@@ -188,17 +223,22 @@ public abstract class MainFarAutonomous extends OpMode {
             case SHOOTING:
                 // Wait for the shooting sequence to complete
                 if (shooter.isIdle()) {
-                    // Start intaking and move to the next intake position
-                    autoIntake();
-                    drive.follower.followPath(toIntakePath, 0.6, true);
-                    cycleState = CycleState.MOVING_TO_INTAKE;
+                    if (toIntakePath != null) {
+                        // Start intaking and move to the next intake position
+                        autoIntake();
+                        drive.follower.followPath(toIntakePath, 0.8, true);
+                        cycleState = CycleState.MOVING_TO_INTAKE;
+                    } else {
+                        cycleState = CycleState.IDLE;
+                        return true; // Signal that this cycle is complete
+                    }
                 }
                 break;
 
             case MOVING_TO_INTAKE:
-                // Wait for the robot to arrive at the intake spot
+                // When the robot finishes the intake path...
                 if (!drive.follower.isBusy()) {
-                    intake.stop();
+                    actionTimer.reset();
                     cycleState = CycleState.IDLE; // Reset for the next cycle
                     return true; // Signal that this cycle is complete
                 }
@@ -210,6 +250,7 @@ public abstract class MainFarAutonomous extends OpMode {
     private void park() {
         Species variant = getVariant();
         PathChain parkPath;
+        intake.stop();
 
         switch (variant) {
             case SOLO:
@@ -228,11 +269,12 @@ public abstract class MainFarAutonomous extends OpMode {
                 break;
         }
 
-        drive.follower.followPath(parkPath, 0.6, true);
+        drive.follower.followPath(parkPath, 0.8, true);
     }
 
-    public void autoShoot(boolean farShot) {
-        navigator.setSail(farShot ? new CannonSailFar(shooter, intake, motif) : new CannonSailClose(shooter, intake, motif));
+    private int index = 1;
+    public void autoShoot(int index, boolean farShot) {
+        navigator.setSail(farShot ? new CannonSailFar(shooter, intake, motif, index) : new CannonSailClose(shooter, intake, motif, index));
     }
 
     public void autoIntake() {

@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.opmode.auto.paths;
 
 import static org.firstinspires.ftc.teamcode.RobotConstants.DEFAULT_BRAKING_STRENGTH;
 import static org.firstinspires.ftc.teamcode.RobotConstants.DEFAULT_VELOCITY_CONSTRAINT;
+import static org.firstinspires.ftc.teamcode.RobotConstants.PARKING_VELOCITY_CONSTRAINT;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
@@ -19,7 +20,7 @@ public class FarPaths {
     // START to Shoot pose 1
     private Pose p1_c1 = new Pose(30.000, 8.000);
     private Pose p1_start = new Pose(64.000, 8.000);
-    private Pose p1_end   = new Pose(64.000, 17.000);
+    private Pose p1_end   = new Pose(60.000, 17.000);
     private double p1_start_h = Math.toRadians(180);
     private double p1_end_h   = Math.toRadians(200);
 
@@ -35,8 +36,8 @@ public class FarPaths {
     private double p3_end_h = Math.toRadians(200);
 
     // Shoot pose 2 to Intake 2
-    private Pose p4_c1 = new Pose(60.000, 64.000 + 2.0); // Manual Correction
-    private Pose p4_end = new Pose(12.000, 60.000);
+    private Pose p4_c1 = new Pose(60.000, 64.000 + 4.0); // Manual Correction
+    private Pose p4_end = new Pose(12.000, 60.000 + 4.0); // Manual Correction
     private double p4_end_h = Math.toRadians(180);
 
     // Intake 2 to Shoot pose 3
@@ -49,7 +50,7 @@ public class FarPaths {
     private double p6_end_h = Math.toRadians(180);
 
     // Park pose far
-    private Pose pFar_end = new Pose(55.000, 36.000);
+    private Pose pFar_end = new Pose(32.000, 36.000);
     private double pFar_end_h = Math.toRadians(180);
     private Pose pClose_end = new Pose(55.000, 60.000);
     private double pClose_end_h = Math.toRadians(180);
@@ -171,12 +172,12 @@ public class FarPaths {
                         .setVelocityConstraint(DEFAULT_VELOCITY_CONSTRAINT)
                         .build();
 
-                // Shoot Pose 3 to Park
+                // Shoot Pose 3 to PARK
                 Path8 = follower.pathBuilder()
                         .addPath(new BezierLine(p5_end, pClose_end))
                         .setLinearHeadingInterpolation(p5_end_h, pClose_end_h)
                         .setBrakingStrength(DEFAULT_BRAKING_STRENGTH)
-                        .setVelocityConstraint(DEFAULT_VELOCITY_CONSTRAINT)
+                        .setVelocityConstraint(PARKING_VELOCITY_CONSTRAINT)
                         .build();
 
                 break;
@@ -190,12 +191,12 @@ public class FarPaths {
                         .setVelocityConstraint(DEFAULT_VELOCITY_CONSTRAINT)
                         .build();
 
-                // Shoot pose 3 to Park
+                // Shoot Pose 3 to PARK
                 Path6 = follower.pathBuilder()
                         .addPath(new BezierLine(p5_end, pFar_end))
                         .setLinearHeadingInterpolation(p5_end_h, pFar_end_h)
                         .setBrakingStrength(DEFAULT_BRAKING_STRENGTH)
-                        .setVelocityConstraint(DEFAULT_VELOCITY_CONSTRAINT)
+                        .setVelocityConstraint(PARKING_VELOCITY_CONSTRAINT)
                         .build();
 
                 break;

@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.opmode.auto;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
-@Autonomous(name = "Blue Auto Solo", group = "Far")
+@Autonomous(name = "Blue Auto Solo", group = "BlueFar")
 public class BlueAutoSolo extends MainFarAutonomous {
     @Override
     protected boolean isBlueSide() {

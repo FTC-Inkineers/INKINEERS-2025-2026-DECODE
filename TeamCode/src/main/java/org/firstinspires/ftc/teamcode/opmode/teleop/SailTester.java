@@ -50,7 +50,7 @@ public class SailTester extends OpMode {
 
 
         if (gamepad1.aWasPressed()) {
-            navigator.setSail(new CannonSailFar(shooter, intake, motif));
+            navigator.setSail(new CannonSailFar(shooter, intake, motif, 1));
         }
 
         if (gamepad1.y) {

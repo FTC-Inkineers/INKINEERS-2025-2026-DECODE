@@ -14,7 +14,8 @@ public class RobotConstants {
     public static final double forwardZeroPowerAcceleration = -41.0;
     public static final double lateralZeroPowerAcceleration = -86.0;
     public static double DEFAULT_BRAKING_STRENGTH = 0.8;
-    public static double DEFAULT_VELOCITY_CONSTRAINT = 30;
+    public static double DEFAULT_VELOCITY_CONSTRAINT = 35;
+    public static double PARKING_VELOCITY_CONSTRAINT = 40;
 
     public static FilteredPIDFCoefficients drive = new FilteredPIDFCoefficients(
             0.025,
