@@ -104,7 +104,7 @@ public abstract class MainCloseAutonomous extends OpMode {
         drive.follower.update();
         shooter.runAuto();
         intake.runAuto();
-        rgb.runAuto(shooter.getTargetPower());
+        rgb.runAuto(shooter.getCurrentRPM());
         navigator.update();
 
         autonomousPathUpdate();

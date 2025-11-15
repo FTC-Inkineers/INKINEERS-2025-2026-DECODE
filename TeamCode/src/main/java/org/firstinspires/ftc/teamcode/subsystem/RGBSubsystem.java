@@ -44,7 +44,7 @@ public class RGBSubsystem {
     }
 
     public void runAuto(double rpm) {
-        setColor(rpm / MAX_FLYWHEEL_RPM + 0.1);
+        rgb.setPower(rpm / MAX_FLYWHEEL_RPM - 0.1);
     }
 
     /**
