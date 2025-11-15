@@ -197,7 +197,7 @@ public class ShooterSubsystem {
             telemetry.addData("Shooter Message", shooterMessage());
             telemetry.addData("Trigger Time", getTimerSeconds());
             telemetry.addLine();
-            telemetry.addData("Stationary RPM", getStationaryRPM());
+            telemetry.addData("Stationary RPM", getStationaryRPM_Far());
         }
         telemetry.addData("Current Target RPM:", getTargetRPM());
         telemetry.addData("Current RPM:", getCurrentRPM());
@@ -251,8 +251,11 @@ public class ShooterSubsystem {
     public String shooterMessage() {
         return shooterMessage;
     }
-    public double getStationaryRPM() {
+    public double getStationaryRPM_Far() {
         return STATIONARY_RPM_FAR;
+    }
+    public double getStationaryRPM_Close() {
+        return STATIONARY_RPM_CLOSE;
     }
     public double getTargetRPM() {
         return targetRPM;

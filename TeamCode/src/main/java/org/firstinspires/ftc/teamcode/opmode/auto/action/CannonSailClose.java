@@ -17,7 +17,7 @@ import org.firstinspires.ftc.teamcode.subsystem.VisionSubsystem;
  * This action will rev up the shooter, wait until it's at speed, fire, and then stop.
  */
 @Config
-public class CannonSail implements Sail {
+public class CannonSailClose implements Sail {
 
     private final ShooterSubsystem shooter;
     private final IntakeSubsystem intake;
@@ -38,7 +38,7 @@ public class CannonSail implements Sail {
     public static double SHOOT_INTERVAL_TIMEOUT = 1.8;
     public static double SHOOTER_RAMP_UP_TIMEOUT = 1.8;
 
-    public CannonSail(ShooterSubsystem shooter, IntakeSubsystem intake, VisionSubsystem.ObeliskMotif motif) {
+    public CannonSailClose(ShooterSubsystem shooter, IntakeSubsystem intake, VisionSubsystem.ObeliskMotif motif) {
         this.shooter = shooter;
         this.intake = intake;
         // Default to PGP if UNKNOWN is somehow passed
@@ -56,7 +56,7 @@ public class CannonSail implements Sail {
     @Override
     public void initialize() {
         // Start the process by revving up the shooter and slowly intake
-        shooter.setTargetRPM(shooter.getStationaryRPM());
+        shooter.setTargetRPM(shooter.getStationaryRPM_Close());
         intake.setPower(0.5);
         currentState = ShootState.RAMP_UP;
         timer.reset();
@@ -107,7 +107,7 @@ public class CannonSail implements Sail {
                 }
 
                 if (timer.seconds() > SHOOT_INTERVAL_TIMEOUT) {
-                    shooter.setTargetRPM(shooter.getStationaryRPM()); // Go back to default RPM
+                    shooter.setTargetRPM(shooter.getStationaryRPM_Close()); // Go back to default RPM
                     intake.stop(); // Pause all unused intakes for next shot
                     currentState = ShootState.FIRE_2;
                     timer.reset();

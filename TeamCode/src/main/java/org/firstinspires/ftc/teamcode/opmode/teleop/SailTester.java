@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.opmode.teleop;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.opmode.auto.action.CannonSail;
+import org.firstinspires.ftc.teamcode.opmode.auto.action.CannonSailFar;
 import org.firstinspires.ftc.teamcode.opmode.auto.action.Navigator;
 import org.firstinspires.ftc.teamcode.subsystem.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.subsystem.RGBSubsystem;
@@ -50,7 +50,7 @@ public class SailTester extends OpMode {
 
 
         if (gamepad1.aWasPressed()) {
-            navigator.setSail(new CannonSail(shooter, intake, motif));
+            navigator.setSail(new CannonSailFar(shooter, intake, motif));
         }
 
         if (gamepad1.y) {

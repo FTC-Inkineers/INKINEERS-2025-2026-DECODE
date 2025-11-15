@@ -10,7 +10,12 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 
 /** @noinspection FieldCanBeLocal*/
-public class Paths {
+public class FarPaths {
+    public enum Variant {
+        SOLO,
+        SYNERGIZED,
+        CARRY
+    }
 
     // region MASTER PATH DEFINITIONS (Default to BLUE alliance)
     // These variables will be used as-is for BLUE or reflected for RED.
@@ -19,7 +24,9 @@ public class Paths {
     private Pose p1_start = new Pose(56.000, 8.000);
     private Pose p1_end   = new Pose(56.000, 17.000);
     private double p1_start_h = Math.toRadians(180);
-    private double p1_end_h   = Math.toRadians(120);
+    private double p1_end_h   = Math.toRadians(200);
+
+    public Pose START_POSE = new Pose(p1_start.getX(), p1_start.getY(), p1_start_h);
 
     // Shoot pose 1 to Intake 1
     private Pose p2_c1 = new Pose(60.000, 42.000);
@@ -28,17 +35,17 @@ public class Paths {
 
     // Intake 1 to Shoot pose 2
     private Pose p3_c1 = new Pose(56.000, 36.000);
-    private double p3_end_h = Math.toRadians(120);
+    private double p3_end_h = Math.toRadians(200);
 
     // Shoot pose 2 to Intake 2
-    private Pose p4_c1 = new Pose(60.000, 64.000);
+    private Pose p4_c1 = new Pose(60.000, 64.000 + 2.0); // Manual Correction
     private Pose p4_end = new Pose(12.000, 60.000);
     private double p4_end_h = Math.toRadians(180);
 
     // Intake 2 to Shoot pose 3
-    private Pose p5_c1 = new Pose(56.000, 64.000);
-    private Pose p5_end = new Pose(56.000, 84.000);
-    private double p5_end_h = Math.toRadians(130);
+    private Pose p5_c1 = new Pose(60.000, 64.000);
+    private Pose p5_end = new Pose(60.000, 84.000);
+    private double p5_end_h = Math.toRadians(220);
 
     // Shoot pose 3 to Intake 3
     private Pose p6_end = new Pose(12.000, 84.000);
@@ -52,7 +59,7 @@ public class Paths {
      * Default constructor, assumes BLUE alliance.
      * @param follower The Follower object from your drive train.
      */
-    public Paths(Follower follower) {
+    public FarPaths(Follower follower) {
         this(follower, true); // Defaults to BLUE
     }
 
@@ -60,10 +67,10 @@ public class Paths {
      * The main constructor that builds paths for the specified alliance.
      * @param follower The Follower object from your drive train.
      */
-    public Paths(Follower follower, boolean isBlueSide) {
+    public FarPaths(Follower follower, boolean isBlueSide) {
         // If RED alliance, reflect all master poses and headings.
         // If BLUE, this block is skipped and the default values are used.
-        if (isBlueSide) {
+        if (!isBlueSide) {
             p1_start = reflect(p1_start);
             p1_end = reflect(p1_end);
             p1_start_h = reflect(p1_start_h);
@@ -86,6 +93,8 @@ public class Paths {
 
             p6_end = reflect(p6_end);
             p6_end_h = reflect(p6_end_h);
+
+            START_POSE = new Pose(p1_start.getX(), p1_start.getY(), p1_start_h);
         }
 
         // START to Shoot pose 1

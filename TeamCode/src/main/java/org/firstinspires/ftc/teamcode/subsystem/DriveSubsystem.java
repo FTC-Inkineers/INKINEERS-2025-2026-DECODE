@@ -52,14 +52,15 @@ public class DriveSubsystem {
     public DriveSubsystem(HardwareMap hardwareMap, VisionSubsystem visionSubsystem, boolean isBlueSide) {
 
         follower = Constants.createFollower(hardwareMap, isBlueSide);
-        follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
-        follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 
         vision = visionSubsystem;
     }
 
     public void initTeleOp(Gamepad gamepad1, Gamepad gamepad2) {
+        follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
+        follower.update();
+
         this.gamepad1 = gamepad1;
         this.gamepad2 = gamepad2;
 
@@ -71,8 +72,9 @@ public class DriveSubsystem {
         lastManualState = DriveState.MANUAL;
     }
 
-    public void initAuto() {
-
+    public void initAuto(Pose startPose) {
+        follower.setStartingPose(startPose == null ? new Pose() : startPose);
+        follower.update();
     }
     
     public void start() {
