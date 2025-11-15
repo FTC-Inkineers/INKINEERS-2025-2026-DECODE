@@ -136,8 +136,7 @@ public abstract class CannonSail implements Sail {
                         break;
                 }
 
-                //
-                if (timer.seconds() > SHOOT_INTERVAL_TIMEOUT - 1.0) {
+                if (timer.seconds() > SHOOT_INTERVAL_TIMEOUT) {
                     intake.stop(); // Pause all unused intakes for next shot
                     currentState = ShootState.FIRE_3;
                     timer.reset();

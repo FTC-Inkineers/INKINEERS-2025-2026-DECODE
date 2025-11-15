@@ -101,6 +101,7 @@ public class FarPaths {
         }
 
         switch (species) {
+            case SOLO:
             case PUSH:
                 // Push alliance out of shooting line
                 Path1 = follower.pathBuilder()
@@ -110,7 +111,6 @@ public class FarPaths {
                         .setVelocityConstraint(DEFAULT_VELOCITY_CONSTRAINT)
                         .build();
                 break;
-            case SOLO:
             case SYMBIOTIC:
                 // Straight line from START to Shoot pose 1
                 Path1 = follower.pathBuilder()

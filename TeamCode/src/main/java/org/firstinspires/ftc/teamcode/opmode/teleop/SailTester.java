@@ -45,7 +45,7 @@ public class SailTester extends OpMode {
     public void loop() {
         shooter.runAuto();
         intake.runAuto();
-        rgb.runAuto(shooter.getCurrentRPM());
+        rgb.runAuto(shooter.getTargetPower());
         navigator.update();
 
 

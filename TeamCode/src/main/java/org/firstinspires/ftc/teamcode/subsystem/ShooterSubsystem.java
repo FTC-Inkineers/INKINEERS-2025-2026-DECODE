@@ -260,4 +260,7 @@ public class ShooterSubsystem {
     public double getTargetRPM() {
         return targetRPM;
     }
+    public double getTargetPower() {
+        return targetPower;
+    }
 }

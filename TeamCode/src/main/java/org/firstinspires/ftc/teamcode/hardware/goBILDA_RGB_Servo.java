@@ -7,7 +7,7 @@ import com.qualcomm.robotcore.hardware.Servo;
  * Represents a goBILDA RGB LED controlled by a Servo.
  * This class abstracts the PWM values into named colors for easy use.
  */
-public class goBILDA_RGB {
+public class goBILDA_RGB_Servo {
 
     private final Servo rgbServo;
 
@@ -29,7 +29,7 @@ public class goBILDA_RGB {
      * @param hardwareMap The robot's hardware map.
      * @param deviceName The configured name of the servo in the robot controller.
      */
-    public goBILDA_RGB(HardwareMap hardwareMap, String deviceName) {
+    public goBILDA_RGB_Servo(HardwareMap hardwareMap, String deviceName) {
         rgbServo = hardwareMap.get(Servo.class, deviceName);
     }
 

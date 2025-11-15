@@ -4,10 +4,10 @@ import static org.firstinspires.ftc.teamcode.RobotConstants.MAX_FLYWHEEL_RPM;
 
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import org.firstinspires.ftc.teamcode.hardware.goBILDA_RGB;
+import org.firstinspires.ftc.teamcode.hardware.goBILDA_RGB_Continuous;
 
 public class RGBSubsystem {
-    private final goBILDA_RGB rgb; // Use the new goBILDA_RGB object
+    private final goBILDA_RGB_Continuous rgb; // Use the new goBILDA_RGB object
     private double currentColor;
 
     private final ElapsedTime pulseTimer = new ElapsedTime();
@@ -15,8 +15,8 @@ public class RGBSubsystem {
     private static final double PULSE_SPEED = 3.0;
 
     public RGBSubsystem(HardwareMap hardwareMap) {
-        rgb = new goBILDA_RGB(hardwareMap, "RGB");
-        currentColor = goBILDA_RGB.GREEN;
+        rgb = new goBILDA_RGB_Continuous(hardwareMap, "RGB");
+        currentColor = goBILDA_RGB_Continuous.GREEN;
     }
 
     public void resetPulseTimer() {
@@ -26,21 +26,21 @@ public class RGBSubsystem {
     public void runTeleOp(DriveSubsystem.DriveState driveState, boolean lockedOn) {
         switch (driveState) {
             case MANUAL:
-                setColor(goBILDA_RGB.GREEN);
+                setColor(goBILDA_RGB_Continuous.GREEN);
                 break;
             case MANUAL_AIM_ASSIST:
                 if (lockedOn) {
-                    setColor(goBILDA_RGB.RED);
+                    setColor(goBILDA_RGB_Continuous.RED);
                 } else {
-                    setColor(goBILDA_RGB.GREEN);
+                    setColor(goBILDA_RGB_Continuous.GREEN);
                     pulse();
                 }
                 break;
             case HOLD_POSITION:
-                setColor(goBILDA_RGB.VIOLET);
+                setColor(goBILDA_RGB_Continuous.VIOLET);
                 break;
         }
-        rgb.setPosition(currentColor);
+        rgb.setPower(currentColor);
     }
 
     public void runAuto(double rpm) {
@@ -63,6 +63,6 @@ public class RGBSubsystem {
         double offset = sineOutput * PULSE_AMPLITUDE;
 
         // Apply the smooth, oscillating offset to the base color
-        rgb.setPosition(currentColor + offset);
+        rgb.setPower(currentColor + offset);
     }
 }
