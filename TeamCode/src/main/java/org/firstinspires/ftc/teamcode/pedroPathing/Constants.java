@@ -29,7 +29,7 @@ public class Constants {
             .translationalPIDFCoefficients(translational)
             .drivePIDFCoefficients(drive)
             .headingPIDFCoefficients(heading)
-            .useSecondaryDrivePIDF(true);
+            .useSecondaryDrivePIDF(false);
 
     public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
 
@@ -95,9 +95,9 @@ public class Constants {
     // --- Pinpoint Localizer --- //
     public static PinpointConstants blueLocalizerConstants = new PinpointConstants()
             // For BLUE ALLIANCE
-            .forwardPodY(-124.038)
+            .forwardPodY(125.0)
             .distanceUnit(DistanceUnit.MM)
-            .strafePodX(-24.338)
+            .strafePodX(-11.643)
             .distanceUnit(DistanceUnit.MM)
             .hardwareMapName("pinpoint")
             .encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD)
@@ -107,9 +107,9 @@ public class Constants {
 
     public static PinpointConstants redLocalizerConstants = new PinpointConstants()
             // For RED ALLIANCE
-            .forwardPodY(124.038)
+            .forwardPodY(-125.0)
             .distanceUnit(DistanceUnit.MM)
-            .strafePodX(24.338)
+            .strafePodX(11.643)
             .distanceUnit(DistanceUnit.MM)
             .hardwareMapName("pinpoint")
             .encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD)

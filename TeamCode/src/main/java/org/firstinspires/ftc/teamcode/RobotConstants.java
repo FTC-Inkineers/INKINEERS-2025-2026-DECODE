@@ -9,8 +9,8 @@ import com.pedropathing.control.PIDFCoefficients;
 @Configurable
 public class RobotConstants {
     // ODOMETRY
-    public static final double xVelocity = 76.0;
-    public static final double yVelocity = 60.0;
+    public static final double xVelocity = 81.0;
+    public static final double yVelocity = 60.5;
     public static final double forwardZeroPowerAcceleration = -41.0;
     public static final double lateralZeroPowerAcceleration = -86.0;
     public static double DEFAULT_BRAKING_STRENGTH = 0.8;
