@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.opmode.auto.action.CannonSailClose;
 import org.firstinspires.ftc.teamcode.opmode.auto.action.Navigator;
 import org.firstinspires.ftc.teamcode.opmode.auto.action.CannonSailFar;
-import org.firstinspires.ftc.teamcode.pedroPathing.FarPaths;
+import org.firstinspires.ftc.teamcode.opmode.auto.paths.FarPaths;
 import org.firstinspires.ftc.teamcode.subsystem.RGBSubsystem;
 import org.firstinspires.ftc.teamcode.subsystem.VisionSubsystem;
 import org.firstinspires.ftc.teamcode.subsystem.DriveSubsystem;
@@ -27,17 +27,17 @@ public abstract class MainFarAutonomous extends OpMode {
     protected FarPaths paths;
     protected Navigator navigator;
 
-    protected enum Variant {
+    public enum Species {
         SOLO,
-        CARRY,
-        SYNERGIZED
+        PUSH,
+        SYMBIOTIC
     }
 
     private VisionSubsystem.ObeliskMotif motif = VisionSubsystem.ObeliskMotif.UNKNOWN;
 
     // Abstract methods to be implemented
     protected abstract boolean isBlueSide();
-    protected abstract Variant getVariant();
+    protected abstract Species getVariant();
 
     // Timer variables
 
@@ -59,7 +59,7 @@ public abstract class MainFarAutonomous extends OpMode {
         drive = new DriveSubsystem(hardwareMap, vision, isBlueSide());
         shooter = new ShooterSubsystem(hardwareMap);
         intake = new IntakeSubsystem(hardwareMap);
-        paths = new FarPaths(drive.follower, isBlueSide());
+        paths = new FarPaths(drive.follower, isBlueSide(), getVariant());
         navigator = new Navigator();
 
         // Make sure to call this AFTER paths have been constructed.
@@ -112,7 +112,7 @@ public abstract class MainFarAutonomous extends OpMode {
     }
 
     public void autonomousPathUpdate() {
-        Variant variant = getVariant(); // Set the variant here
+        Species variant = getVariant(); // Set the variant here
 
         switch(pathState) {
             case 0:
@@ -131,25 +131,29 @@ public abstract class MainFarAutonomous extends OpMode {
 
             case 2:
                 // Third cycle logic depends on the selected variant
-                if (variant == Variant.SOLO) {
+                if (variant == Species.SOLO) {
                     // Third cycle (Close Shot)
                     if (runCycle(paths.Path5, paths.Path6, false)) {
                         setPathState(3); // Move to park after 3rd cycle
                     }
                 } else {
-                    // For any other variant (like TWO_CYCLES_AND_PARK), skip straight to parking
                     setPathState(3);
                 }
                 break;
 
             case 3:
-                // Add parking logic here
-                // For example:
-                // drive.follower.followPath(paths.PARK_CENTER);
-                // setPathState(4);
+                park();
+                setPathState(4);
                 break;
 
             case 4:
+                // Wait for parking to finish
+                if (!drive.follower.isBusy()) {
+                    setPathState(5);
+                }
+                break;
+
+            case 5:
                 // Opmode finished
                 break;
         }
@@ -201,6 +205,30 @@ public abstract class MainFarAutonomous extends OpMode {
                 break;
         }
         return false; // Cycle is still in progress
+    }
+
+    private void park() {
+        Species variant = getVariant();
+        PathChain parkPath;
+
+        switch (variant) {
+            case SOLO:
+                // The SOLO variant parks after the 3rd cycle, using Path8
+                parkPath = paths.Path8;
+                break;
+            case PUSH:
+            case SYMBIOTIC:
+                // PUSH and SYMBIOTIC variants park after the 2nd cycle, using Path6
+                parkPath = paths.Path6;
+                break;
+            default:
+                // Default to a safe parking path if something goes wrong.
+                // You might want to define a default park path in FarPaths.
+                parkPath = paths.Path6; // Assuming Path6 is a safe default
+                break;
+        }
+
+        drive.follower.followPath(parkPath, 0.6, true);
     }
 
     public void autoShoot(boolean farShot) {
