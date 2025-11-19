@@ -208,7 +208,7 @@ public abstract class MainFarAutonomous extends OpMode {
 
             case MOVING_TO_SHOOT:
                 // Continue spinning up the shooter while moving
-                shooter.updateShooterPower();
+                shooter.updateShooterPhysics();
                 // Stop intake 0.5 seconds later to ensure elements
                 if (actionTimer.seconds() > 0.5)
                     intake.stop();

@@ -21,7 +21,7 @@ public abstract class CannonSail implements Sail {
 
     private final ShooterSubsystem shooter;
     private final IntakeSubsystem intake;
-    private VisionSubsystem.ObeliskMotif motif;
+    private final VisionSubsystem.ObeliskMotif motif;
     private final ElapsedTime timer = new ElapsedTime();
 
     protected abstract double rpm();
@@ -73,7 +73,7 @@ public abstract class CannonSail implements Sail {
     @Override
     public void execute() {
         // Always run shooter PID
-        shooter.updateShooterPower();
+        shooter.updateShooterPhysics();
 
         // State machine for the shooting sequence
         switch (currentState) {

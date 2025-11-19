@@ -22,7 +22,7 @@ public class FarPaths {
     private Pose p1_start = new Pose(64.000, 8.000);
     private Pose p1_end   = new Pose(60.000, 17.000);
     private double p1_start_h = Math.toRadians(180);
-    private double p1_end_h   = Math.toRadians(200);
+    private double p1_end_h   = Math.toRadians(204);
 
     public Pose START_POSE = new Pose(p1_start.getX(), p1_start.getY(), p1_start_h);
 
@@ -33,7 +33,7 @@ public class FarPaths {
 
     // Intake 1 to Shoot pose 2
     private Pose p3_c1 = new Pose(56.000, 36.000);
-    private double p3_end_h = Math.toRadians(200);
+    private double p3_end_h = Math.toRadians(204);
 
     // Shoot pose 2 to Intake 2
     private Pose p4_c1 = new Pose(60.000, 64.000 + 4.0); // Manual Correction
