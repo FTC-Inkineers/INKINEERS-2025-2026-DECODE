@@ -16,8 +16,10 @@ public class AquamarineRobot {
     private final RGBSubsystem rgb;
 
     public static boolean enableALlDriveTelemetry = false;
-    public static boolean enableAllShooterTelemetry = false;
+    public static boolean enableAllShooterTelemetry = true;
     public static boolean enableAllIntakeTelemetry = false;
+    public static boolean enableAllVisionTelemetry = false;
+
 
     private Gamepad gamepad1;
     private Gamepad gamepad2;
@@ -40,7 +42,6 @@ public class AquamarineRobot {
 
     public void start() {
         drive.start();
-        rgb.resetPulseTimer();
     }
 
     public void runTeleOp() {
@@ -48,14 +49,21 @@ public class AquamarineRobot {
         drive.runTeleOp(shooter.isActive());
         shooter.runTeleOp(gamepad2);
         intake.runTeleOp(gamepad1);
+
+        // Was shot fired!?
+        if (shooter.wasReady()) {
+            gamepad2.stopRumble();
+            gamepad2.rumble(300);
+            rgb.flash();
+        }
     }
 
     public void sendTelemetry(Telemetry telemetry) {
         shooter.sendAllTelemetry(telemetry, enableAllShooterTelemetry);
         drive.sendAllTelemetry(telemetry, enableALlDriveTelemetry);
-        drive.runRGB(rgb);
         intake.sendAllTelemetry(telemetry, enableAllIntakeTelemetry);
-        vision.sendTelemetry(telemetry);
+        vision.sendTelemetry(telemetry, enableAllVisionTelemetry);
+        rgb.runTeleOp(drive.getDriveState(), drive.getLockedOn());
         // Add other relevant telemetry from other subsystems if needed
     }
 }

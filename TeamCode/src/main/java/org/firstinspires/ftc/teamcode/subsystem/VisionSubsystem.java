@@ -97,18 +97,20 @@ public class VisionSubsystem {
         return null;
     }
 
-    public void sendTelemetry(Telemetry telemetry) {
+    public void sendTelemetry(Telemetry telemetry, boolean enableAll) {
         telemetry.addLine("\\\\ LIMELIGHT //");
         telemetry.addData("Targeting Tag ID", targetTagId);
         LLResultTypes.FiducialResult targetTag = getTargetTag();
 
         if (targetTag != null) {
             telemetry.addData("Tag Found", "ID: %d, Area: %.2f", targetTag.getFiducialId(), targetTag.getTargetArea());
-            telemetry.addData("Tag X degrees", targetTag.getTargetXDegrees());
-            telemetry.addData("Tag Y degrees", targetTag.getTargetYDegrees());
-            Pose3D tagPose = targetTag.getCameraPoseTargetSpace();
-            telemetry.addData("Pose (X, Y, Z)", "%.2f, %.2f, %.2f",
-                    tagPose.getPosition().x, tagPose.getPosition().y, tagPose.getPosition().z);
+            if (enableAll) {
+                telemetry.addData("Tag X degrees", targetTag.getTargetXDegrees());
+                telemetry.addData("Tag Y degrees", targetTag.getTargetYDegrees());
+                Pose3D tagPose = targetTag.getCameraPoseTargetSpace();
+                telemetry.addData("Pose (X, Y, Z)", "%.2f, %.2f, %.2f",
+                        tagPose.getPosition().x, tagPose.getPosition().y, tagPose.getPosition().z);
+            }
         } else {
             telemetry.addData("Tag Found", "None");
         }

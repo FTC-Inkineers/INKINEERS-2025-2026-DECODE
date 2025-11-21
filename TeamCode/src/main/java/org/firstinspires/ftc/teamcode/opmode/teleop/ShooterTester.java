@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.subsystem.ShooterSubsystem;
+import org.firstinspires.ftc.teamcode.subsystem.VisionSubsystem;
 
 @TeleOp(name = "Shooter Tester", group = "Testing")
 public class ShooterTester extends OpMode {
@@ -16,6 +17,7 @@ public class ShooterTester extends OpMode {
     @Override
     public void init() {
         shooterSubsystem = new ShooterSubsystem(hardwareMap);
+        shooterSubsystem.initTeleOp(new VisionSubsystem(hardwareMap, true));
         telemetry = dashboard.getTelemetry();
     }
 

@@ -18,7 +18,7 @@ public class ClosePaths {
     // These variables will be used as-is for BLUE or reflected for RED.
 
     // START to Scan Pose
-    private Pose p1_c1 = new Pose(30.000, 8.000);
+    private Pose p1_c1 = new Pose(37.000, 110.000);
     private Pose p1_start = new Pose(24.000, 132.000);
     private Pose p1_end   = new Pose(48.000, 108.000);
     private double p1_start_h = Math.toRadians(225);

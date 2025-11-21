@@ -39,7 +39,7 @@ public class ShooterSubsystem {
     public static double kI = 0.0;
     public static double kD = 0.0008;
     public static double SMOOTHING_ALPHA = 0.1; // Try a value between 0.1 and 0.3.
-    public static double RPM_TOLERANCE = 100; // Allowable error to be considered "READY"
+    public static double RPM_TOLERANCE = 110; // Allowable error to be considered "READY"
 
     private final FPIDController shooterController = new FPIDController.Builder(kP).withF(kF).withD(kD).build();
 
@@ -52,10 +52,13 @@ public class ShooterSubsystem {
 
     private ShooterState currentState = ShooterState.IDLE;
     private String triggerMessage = "idle";
+    private boolean justFired = false;
+    private boolean justReady = false;
 
     private final ElapsedTime triggerTimer = new ElapsedTime();
     private final ElapsedTime shooterTimer = new ElapsedTime();
 
+    private double spinUpTime = 0;
     private double targetRPM = 0;
     private double targetPower = 0;
     private double lastFilteredRPM = 0.0;
@@ -116,6 +119,7 @@ public class ShooterSubsystem {
         switch (currentState) {
             case IDLE:
                 if (targetRPM > 0) {
+                    shooterTimer.reset();
                     currentState = ShooterState.RAMPING_UP;
                 }
                 break;
@@ -124,6 +128,8 @@ public class ShooterSubsystem {
                 if (targetRPM == 0) {
                     currentState = ShooterState.RAMPING_DOWN;
                 } else if (Math.abs(error) < RPM_TOLERANCE) {
+                    spinUpTime = shooterTimer.seconds();
+                    justReady = true;
                     currentState = ShooterState.READY;
                 }
                 break;
@@ -132,6 +138,14 @@ public class ShooterSubsystem {
                 if (targetRPM == 0) {
                     currentState = ShooterState.RAMPING_DOWN;
                 } else if (Math.abs(error) > RPM_TOLERANCE) {
+                    // --- SHOT DETECTION LOGIC ---
+                    // error = Target - Current.
+                    // If error is positive (Target > Current), the motor slowed down (Shot fired).
+                    // If error is negative (Current > Target), we likely just lowered the target RPM setting.
+                    if (error > RPM_TOLERANCE) {
+                        justFired = true;
+                    }
+                    shooterTimer.reset();
                     currentState = ShooterState.RAMPING_UP; // Lost speed, ramp back up
                 }
                 break;
@@ -250,20 +264,39 @@ public class ShooterSubsystem {
         return currentState;
     }
 
+    public boolean wasShotFired() {
+        if (justFired) {
+            justFired = false; // Reset so we don't count the same shot twice
+            return true;
+        }
+        return false;
+    }
+
+    public boolean wasReady() {
+        if (justReady) {
+            justReady = false; // Reset so we don't trigger multiple times
+            return true;
+        }
+        return false;
+    }
+
+
+
     // --- TELEMETRY ---
 
     public void sendAllTelemetry(Telemetry telemetry, boolean enableAll) {
         telemetry.addLine("\\ SHOOTER SUBSYSTEM //");
-        telemetry.addData("State", currentState.toString()); // NEW: Shows state
+        telemetry.addData("State", currentState.toString());
 
         if (enableAll) {
             telemetry.addData("Trigger Msg", triggerMessage);
-            telemetry.addData("Stationary RPM", getStationaryRPM_Far());
+            telemetry.addData("Stationary RPM (Far)", getStationaryRPM_Far());
+            telemetry.addData("Spin Up Time", spinUpTime);
+            telemetry.addData("Motor Power", shooterMotor.getPower());
         }
         telemetry.addData("Target RPM:", targetRPM);
         telemetry.addData("Current RPM:", getCurrentRPM());
         telemetry.addData("Error:", error);
-        telemetry.addData("Motor Power", shooterMotor.getPower());
     }
 
     // --- PRIMITIVES ---
@@ -336,5 +369,48 @@ public class ShooterSubsystem {
         }
 
         shooterMotor.setPower(testPower);
+    }
+
+    // RPM Testing
+    private int testRPM = 3000;
+    public int getTestRPM() {
+        return testRPM;
+    }
+    public void runRpmTester(Gamepad gamepad) {
+        // 1. Update Tuning
+        shooterController.setGains(kF, kP, kI, kD);
+
+        // RPM Adjustment
+        if (gamepad.dpadUpWasPressed()) {
+            testRPM += 100;
+        } else if (gamepad.dpadDownWasPressed()) {
+            testRPM -= 100;
+        } else if (gamepad.yWasPressed()) {
+            testRPM += 10;
+        } else if (gamepad.xWasPressed()) {
+            testRPM -= 10;
+        }
+
+
+        // Determine if we want to shoot
+        boolean wantToShoot = (gamepad.right_trigger > 0 || gamepad.left_trigger > 0);
+
+        if (wantToShoot) {
+            targetRPM = testRPM;
+            targetRPM = Math.max(0, Math.min(MAX_RPM, targetRPM));
+        } else {
+            // User released trigger, we want 0 RPM
+            targetRPM = 0;
+        }
+
+        runTrigger(gamepad);
+
+        // 3. Calculate Physics
+        updateShooterPhysics();
+        // 4. Update State Logic
+        updateState();
+        // 5. Apply Power based on State
+        updateMotorPower();
+
     }
 }

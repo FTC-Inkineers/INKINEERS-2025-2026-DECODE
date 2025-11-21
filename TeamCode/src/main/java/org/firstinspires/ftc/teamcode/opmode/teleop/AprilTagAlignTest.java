@@ -29,7 +29,7 @@ public class AprilTagAlignTest extends OpMode {
     public void loop() {
         drive.runTeleOp();
         drive.sendAllTelemetry(telemetry, false);
-        vision.sendTelemetry(telemetry);
+        vision.sendTelemetry(telemetry, true);
         telemetry.update();
     }
 }

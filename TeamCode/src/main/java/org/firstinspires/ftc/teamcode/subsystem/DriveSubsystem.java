@@ -163,10 +163,6 @@ public class DriveSubsystem {
         follower.setTeleOpDrive(-leftYInput, -leftXInput, -rightXInput, false);
     }
 
-    public void runRGB(RGBSubsystem rgb) {
-        rgb.runTeleOp(driveState, lockedOn);
-    }
-
     public void sendAllTelemetry(Telemetry telemetry, boolean enableAll) {
         telemetry.addLine("\\ DRIVE //");
         if (enableAll) {
@@ -283,5 +279,13 @@ public class DriveSubsystem {
         telemetryM.debug("HoldErrors", "xErr: %.2f, yErr: %.2f, hErr: %.2f", xError, yError, headingError);
         telemetryM.debug("DrivePID", "P: %.2f, I: %.2f, D: %.2f, Total: %.2f",
                 driveOutput.p, driveOutput.i, driveOutput.d, drive);
+    }
+
+    public DriveState getDriveState() {
+        return driveState;
+    }
+
+    public boolean getLockedOn() {
+        return lockedOn;
     }
 }

@@ -147,8 +147,8 @@ public class IntakeSubsystem {
     }
 
     public void sendAllTelemetry(Telemetry telemetry, boolean enableAll) {
-        telemetry.addLine("\\ INTAKE SUBSYSTEM //");
         if (enableAll) {
+            telemetry.addLine("\\ INTAKE SUBSYSTEM //");
             telemetry.addData("Intake Power", getIntakePower());
         }
     }
