@@ -5,7 +5,9 @@ import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.math.Vector;
 import com.qualcomm.hardware.limelightvision.LLResultTypes;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -38,6 +40,7 @@ public class DriveSubsystem {
     private Gamepad gamepad1;
     private Gamepad gamepad2;
     private final VisionSubsystem vision;
+    private final CRServo windmill;
 
     InputRamper forwardRamper, strafeRamper, turnRamper;
     
@@ -55,6 +58,7 @@ public class DriveSubsystem {
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 
         vision = visionSubsystem;
+        windmill = hardwareMap.get(CRServo.class, "windmill");
     }
 
     public void initTeleOp(Gamepad gamepad1, Gamepad gamepad2) {
@@ -161,6 +165,12 @@ public class DriveSubsystem {
 
         // Field-centric control for manual driving
         follower.setTeleOpDrive(-leftYInput, -leftXInput, -rightXInput, false);
+
+        // Windmill
+        Vector windVector = new Vector(-leftYInput, -leftXInput);
+        windVector.times(-follower.getHeading());
+
+        windmill.setPower(windVector.getXComponent()+rightXInput);
     }
 
     public void sendAllTelemetry(Telemetry telemetry, boolean enableAll) {
