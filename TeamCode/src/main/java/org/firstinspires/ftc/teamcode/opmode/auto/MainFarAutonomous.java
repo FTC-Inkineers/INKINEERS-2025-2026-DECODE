@@ -10,15 +10,16 @@ import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.opmode.auto.action.CannonSailClose;
-import org.firstinspires.ftc.teamcode.opmode.auto.action.Navigator;
-import org.firstinspires.ftc.teamcode.opmode.auto.action.CannonSailFar;
+import org.firstinspires.ftc.teamcode.utility.CannonSailClose;
+import org.firstinspires.ftc.teamcode.utility.Navigator;
+import org.firstinspires.ftc.teamcode.utility.CannonSailFar;
 import org.firstinspires.ftc.teamcode.opmode.auto.paths.FarPaths;
 import org.firstinspires.ftc.teamcode.subsystem.RGBSubsystem;
 import org.firstinspires.ftc.teamcode.subsystem.VisionSubsystem;
 import org.firstinspires.ftc.teamcode.subsystem.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystem.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.subsystem.ShooterSubsystem;
+import org.firstinspires.ftc.teamcode.utility.SequenceMapper;
 
 public abstract class MainFarAutonomous extends OpMode {
     protected DriveSubsystem drive;
@@ -28,6 +29,7 @@ public abstract class MainFarAutonomous extends OpMode {
     protected RGBSubsystem rgb;
     protected FarPaths paths;
     protected Navigator navigator;
+    protected SequenceMapper sequenceMapper;
 
     public enum Species {
         SOLO,
@@ -64,6 +66,7 @@ public abstract class MainFarAutonomous extends OpMode {
         intake = new IntakeSubsystem(hardwareMap);
         paths = new FarPaths(drive.follower, isBlueSide(), getVariant());
         navigator = new Navigator();
+        sequenceMapper = new SequenceMapper();
 
         // Make sure to call this AFTER paths have been constructed.
         drive.initAuto(paths.START_POSE);
@@ -133,28 +136,28 @@ public abstract class MainFarAutonomous extends OpMode {
                     setPathState(0);
                 break;
             case 0:
-                // First cycle (Far Shot)
-                if (runCycle(paths.Path1, paths.Path2, true)) {
+                // First cycle (Far Shot) - Index 0 (Preload)
+                if (runCycle(paths.Path1, paths.Path2, true, 0)) {
                     setPathState(1);
                 }
                 break;
 
             case 1:
-                // Second cycle (Far Shot)
-                if (runCycle(paths.Path3, paths.Path4, true)) {
+                // Second cycle (Far Shot) - Index 3
+                if (runCycle(paths.Path3, paths.Path4, true, 3)) {
                     setPathState(2);
                 }
                 break;
 
             case 2:
-                // Third cycle (Far OR Close Shot)
+                // Third cycle (Far OR Close Shot) - Index 2
                 if (variant == Species.SOLO) {
                     // Third cycle (Close Shot)
-                    if (runCycle(paths.Path5, paths.Path6, false)) {
+                    if (runCycle(paths.Path5, paths.Path6, false, 2)) {
                         setPathState(3); // Move to park after 3rd cycle
                     }
                 } else {
-                    if (runCycle(paths.Path5, null, true)) {
+                    if (runCycle(paths.Path5, null, true, 2)) {
                         setPathState(4);
                     }
                 }
@@ -162,9 +165,14 @@ public abstract class MainFarAutonomous extends OpMode {
 
             case 3:
                 // Fourth cycle logic depends on the selected variant
+                // Assumed to be index 2 again or another index if specified?
+                // For now, keeping it consistent with the previous logic or user request.
+                // User said "only shoot index 0, index 3, and optionally 2".
+                // Cycle 4 for SOLO uses Path7.
                 if (variant == Species.SOLO) {
-                    // Third cycle (Close Shot)
-                    if (runCycle(paths.Path7, null, false)) {
+                    // Third cycle (Close Shot) - Repeating Index 2 or generic?
+                    // Assuming Index 2 based on "optionally 2".
+                    if (runCycle(paths.Path7, null, false, 2)) {
                         setPathState(4); // Move to park after 3rd cycle
                     }
                 } else {
@@ -197,12 +205,14 @@ public abstract class MainFarAutonomous extends OpMode {
         cycleState = CycleState.IDLE; // Reset cycle state machine for the new path state
     }
 
-    private boolean runCycle(PathChain toShootPath, @Nullable PathChain toIntakePath, boolean isFarShot) {
+    private boolean runCycle(PathChain toShootPath, @Nullable PathChain toIntakePath, boolean isFarShot, int shotIndex) {
         switch (cycleState) {
             case IDLE:
                 // Start moving to the shooting position and spin up the shooter
                 drive.follower.followPath(toShootPath, 0.8, true);
                 shooter.setTargetRPM(isFarShot ? shooter.getStationaryRPM_Far() : shooter.getStationaryRPM_Close());
+                // Update the telemetry index for debugging
+                this.index = shotIndex;
                 cycleState = CycleState.MOVING_TO_SHOOT;
                 break;
 
@@ -214,8 +224,7 @@ public abstract class MainFarAutonomous extends OpMode {
                     intake.stop();
                 // When the robot arrives, shoot
                 if (!drive.follower.isBusy()) {
-                    autoShoot(index, isFarShot);
-                    index += 1;
+                    autoShoot(shotIndex, isFarShot);
                     cycleState = CycleState.SHOOTING;
                 }
                 break;
@@ -274,7 +283,8 @@ public abstract class MainFarAutonomous extends OpMode {
 
     private int index = 1;
     public void autoShoot(int index, boolean farShot) {
-        navigator.setSail(farShot ? new CannonSailFar(shooter, intake, motif, index) : new CannonSailClose(shooter, intake, motif, index));
+        SequenceMapper.Sequence sequence = getShootingSequence(motif, index);
+        navigator.setSail(farShot ? new CannonSailFar(shooter, intake, sequence, index) : new CannonSailClose(shooter, intake, sequence, index));
     }
 
     public void autoIntake() {
@@ -283,5 +293,38 @@ public abstract class MainFarAutonomous extends OpMode {
         } else {
             intake.setIntake(RIGHT, INTAKE);
         }
+    }
+
+    protected SequenceMapper.Sequence getShootingSequence(VisionSubsystem.ObeliskMotif motif, int index) {
+        SequenceMapper.PositionConfig target;
+        switch (motif) {
+            case GPP: target = SequenceMapper.PositionConfig.GPP; break;
+            case PPG: target = SequenceMapper.PositionConfig.PPG; break;
+            case PGP:
+            default: target = SequenceMapper.PositionConfig.PGP; break;
+        }
+
+        SequenceMapper.PositionConfig current = getConfigForIndex(index);
+
+        return sequenceMapper.getMappedSequenceEnum(target, current);
+    }
+
+    protected SequenceMapper.PositionConfig getConfigForIndex(int index) {
+        if (index == 0) return SequenceMapper.PositionConfig.GPP; // Explicit user instruction for Index 0
+
+        if (isBlueSide()) {
+            switch (index) {
+                case 1: return SequenceMapper.PositionConfig.GPP;
+                case 2: return SequenceMapper.PositionConfig.PGP;
+                case 3: return SequenceMapper.PositionConfig.PPG;
+            }
+        } else {
+            switch (index) {
+                case 1: return SequenceMapper.PositionConfig.PPG;
+                case 2: return SequenceMapper.PositionConfig.PGP;
+                case 3: return SequenceMapper.PositionConfig.GPP;
+            }
+        }
+        return SequenceMapper.PositionConfig.GPP; // Default
     }
 }

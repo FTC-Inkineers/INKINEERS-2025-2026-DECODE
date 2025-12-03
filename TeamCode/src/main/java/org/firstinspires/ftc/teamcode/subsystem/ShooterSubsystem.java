@@ -286,7 +286,7 @@ public class ShooterSubsystem {
 
     public void sendAllTelemetry(Telemetry telemetry, boolean enableAll) {
         telemetry.addLine("\\ SHOOTER SUBSYSTEM //");
-        telemetry.addData("State", currentState.toString());
+        telemetry.addData("State", getState().toString());
 
         if (enableAll) {
             telemetry.addData("Trigger Msg", triggerMessage);
@@ -342,6 +342,12 @@ public class ShooterSubsystem {
 
     public void setTargetRPM(double rpm) {
         this.targetRPM = rpm;
+    }
+
+    public void stop() {
+        setTargetRPM(0);
+        windDown();
+        releaseTrigger();
     }
 
     public boolean isIdle() {

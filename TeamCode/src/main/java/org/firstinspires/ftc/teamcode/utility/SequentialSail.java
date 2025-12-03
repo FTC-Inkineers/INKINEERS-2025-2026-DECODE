@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.opmode.auto.action;
+package org.firstinspires.ftc.teamcode.utility;
 
 import java.util.Arrays;
 import java.util.LinkedList;

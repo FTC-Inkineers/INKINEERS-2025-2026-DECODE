@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.opmode.auto.action;
+package org.firstinspires.ftc.teamcode.utility;
 
 public class Navigator {
     private Sail currentSail = null;

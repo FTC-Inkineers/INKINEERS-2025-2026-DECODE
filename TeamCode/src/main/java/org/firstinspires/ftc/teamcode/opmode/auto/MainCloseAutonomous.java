@@ -7,15 +7,16 @@ import static org.firstinspires.ftc.teamcode.subsystem.IntakeSubsystem.IntakeUni
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.opmode.auto.action.CannonSailClose;
-import org.firstinspires.ftc.teamcode.opmode.auto.action.CannonSailFar;
-import org.firstinspires.ftc.teamcode.opmode.auto.action.Navigator;
+import org.firstinspires.ftc.teamcode.utility.CannonSailClose;
+import org.firstinspires.ftc.teamcode.utility.CannonSailFar;
+import org.firstinspires.ftc.teamcode.utility.Navigator;
 import org.firstinspires.ftc.teamcode.opmode.auto.paths.ClosePaths;
 import org.firstinspires.ftc.teamcode.subsystem.DriveSubsystem;
 import org.firstinspires.ftc.teamcode.subsystem.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.subsystem.RGBSubsystem;
 import org.firstinspires.ftc.teamcode.subsystem.ShooterSubsystem;
 import org.firstinspires.ftc.teamcode.subsystem.VisionSubsystem;
+import org.firstinspires.ftc.teamcode.utility.SequenceMapper;
 
 public abstract class MainCloseAutonomous extends OpMode {
     protected DriveSubsystem drive;
@@ -25,6 +26,7 @@ public abstract class MainCloseAutonomous extends OpMode {
     protected RGBSubsystem rgb;
     protected ClosePaths paths;
     protected Navigator navigator;
+    protected SequenceMapper sequenceMapper;
 
     public enum Species {
         SOLO,
@@ -61,6 +63,7 @@ public abstract class MainCloseAutonomous extends OpMode {
         intake = new IntakeSubsystem(hardwareMap);
         paths = new ClosePaths(drive.follower, isBlueSide(), getVariant());
         navigator = new Navigator();
+        sequenceMapper = new SequenceMapper();
 
         // Make sure to call this AFTER paths have been constructed.
         drive.initAuto(paths.START_POSE);
@@ -150,8 +153,9 @@ public abstract class MainCloseAutonomous extends OpMode {
             case 2:
                 // Wait for the robot to arrive at the shooting pose
                 if (!drive.follower.isBusy()) {
-                    // Shoot once arrived
-                    navigator.setSail(new CannonSailClose(shooter, intake, motif, 1));
+                    // Shoot once arrived - Index 1
+                    SequenceMapper.Sequence sequence = getShootingSequence(motif, 1);
+                    navigator.setSail(new CannonSailClose(shooter, intake, sequence, 1));
                     setPathState(3);
                 }
                 break;
@@ -186,7 +190,8 @@ public abstract class MainCloseAutonomous extends OpMode {
 
     private int index = 1;
     public void autoShoot(int index, boolean farShot) {
-        navigator.setSail(farShot ? new CannonSailFar(shooter, intake, motif, index) : new CannonSailClose(shooter, intake, motif, index));
+        SequenceMapper.Sequence sequence = getShootingSequence(motif, index);
+        navigator.setSail(farShot ? new CannonSailFar(shooter, intake, sequence, index) : new CannonSailClose(shooter, intake, sequence, index));
     }
 
     public void autoIntake() {
@@ -195,5 +200,38 @@ public abstract class MainCloseAutonomous extends OpMode {
         } else {
             intake.setIntake(RIGHT, INTAKE);
         }
+    }
+    
+    protected SequenceMapper.Sequence getShootingSequence(VisionSubsystem.ObeliskMotif motif, int index) {
+        SequenceMapper.PositionConfig target;
+        switch (motif) {
+            case GPP: target = SequenceMapper.PositionConfig.GPP; break;
+            case PPG: target = SequenceMapper.PositionConfig.PPG; break;
+            case PGP: 
+            default: target = SequenceMapper.PositionConfig.PGP; break;
+        }
+        
+        SequenceMapper.PositionConfig current = getConfigForIndex(index);
+        
+        return sequenceMapper.getMappedSequenceEnum(target, current);
+    }
+
+    protected SequenceMapper.PositionConfig getConfigForIndex(int index) {
+        if (index == 0) return SequenceMapper.PositionConfig.GPP; // Default for preloaded
+
+        if (isBlueSide()) {
+            switch (index) {
+                case 1: return SequenceMapper.PositionConfig.GPP;
+                case 2: return SequenceMapper.PositionConfig.PGP;
+                case 3: return SequenceMapper.PositionConfig.PPG;
+            }
+        } else {
+            switch (index) {
+                case 1: return SequenceMapper.PositionConfig.PPG;
+                case 2: return SequenceMapper.PositionConfig.PGP;
+                case 3: return SequenceMapper.PositionConfig.GPP;
+            }
+        }
+        return SequenceMapper.PositionConfig.GPP; // Default
     }
 }

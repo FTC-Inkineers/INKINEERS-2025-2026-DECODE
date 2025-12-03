@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.opmode.auto.action;
+package org.firstinspires.ftc.teamcode.utility;
 
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;

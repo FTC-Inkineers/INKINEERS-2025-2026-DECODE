@@ -21,6 +21,7 @@ public class ShooterRPMTester extends OpMode {
     @Override
     public void loop() {
         shooter.runRpmTester(gamepad1);
+        vision.update();
 
         telemetry.addData("Target RPM", shooter.getTestRPM());
         telemetry.addData("Increment by 100", "DPAD UP");

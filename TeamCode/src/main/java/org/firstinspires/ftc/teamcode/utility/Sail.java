@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.opmode.auto.action;
+package org.firstinspires.ftc.teamcode.utility;
 
 /**
  * An interface for creating modular, sequential actions in autonomous.

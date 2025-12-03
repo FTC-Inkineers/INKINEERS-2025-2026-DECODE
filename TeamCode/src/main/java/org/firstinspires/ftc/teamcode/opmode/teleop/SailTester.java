@@ -3,12 +3,13 @@ package org.firstinspires.ftc.teamcode.opmode.teleop;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.opmode.auto.action.CannonSailFar;
-import org.firstinspires.ftc.teamcode.opmode.auto.action.Navigator;
+import org.firstinspires.ftc.teamcode.utility.CannonSailFar;
+import org.firstinspires.ftc.teamcode.utility.Navigator;
 import org.firstinspires.ftc.teamcode.subsystem.IntakeSubsystem;
 import org.firstinspires.ftc.teamcode.subsystem.RGBSubsystem;
 import org.firstinspires.ftc.teamcode.subsystem.ShooterSubsystem;
 import org.firstinspires.ftc.teamcode.subsystem.VisionSubsystem;
+import org.firstinspires.ftc.teamcode.utility.SequenceMapper;
 
 @SuppressWarnings("FieldCanBeLocal")
 @TeleOp(name = "Sail Testing", group = "Testing")
@@ -18,8 +19,9 @@ public class SailTester extends OpMode {
     private VisionSubsystem vision;
     private RGBSubsystem rgb;
     private Navigator navigator;
-
     private VisionSubsystem.ObeliskMotif motif = VisionSubsystem.ObeliskMotif.UNKNOWN;
+    private SequenceMapper sequenceMapper;
+
 
 
     @Override
@@ -29,6 +31,7 @@ public class SailTester extends OpMode {
         shooter = new ShooterSubsystem(hardwareMap);
         intake = new IntakeSubsystem(hardwareMap);
         navigator = new Navigator();
+        sequenceMapper = new SequenceMapper();
     }
 
     @Override
@@ -50,7 +53,7 @@ public class SailTester extends OpMode {
 
 
         if (gamepad1.aWasPressed()) {
-            navigator.setSail(new CannonSailFar(shooter, intake, motif, 1));
+            navigator.setSail(new CannonSailFar(shooter, intake, getShootingSequence(motif), 1));
         }
 
         if (gamepad1.y) {
@@ -63,5 +66,20 @@ public class SailTester extends OpMode {
         telemetry.addData("Shooting Sequence", "Button A");
         telemetry.addData("TargetRPM", shooter.getTargetRPM());
         telemetry.update();
+    }
+
+    protected SequenceMapper.Sequence getShootingSequence(VisionSubsystem.ObeliskMotif motif) {
+        SequenceMapper.PositionConfig target;
+        switch (motif) {
+            case GPP: target = SequenceMapper.PositionConfig.GPP; break;
+            case PPG: target = SequenceMapper.PositionConfig.PPG; break;
+            case PGP:
+            default: target = SequenceMapper.PositionConfig.PGP; break;
+        }
+
+        // Assuming current config is GPP (Green Left)
+        SequenceMapper.PositionConfig current = SequenceMapper.PositionConfig.GPP;
+
+        return sequenceMapper.getMappedSequenceEnum(target, current);
     }
 }
