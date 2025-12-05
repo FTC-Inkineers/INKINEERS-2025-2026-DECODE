@@ -284,7 +284,7 @@ public abstract class MainFarAutonomous extends OpMode {
     private int index = 1;
     public void autoShoot(int index, boolean farShot) {
         SequenceMapper.Sequence sequence = getShootingSequence(motif, index);
-        navigator.setSail(farShot ? new CannonSailFar(shooter, intake, sequence, index) : new CannonSailClose(shooter, intake, sequence, index));
+        navigator.setSail(farShot ? new CannonSailFar(shooter, intake, sequence) : new CannonSailClose(shooter, intake, sequence));
     }
 
     public void autoIntake() {

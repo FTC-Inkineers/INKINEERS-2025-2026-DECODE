@@ -6,8 +6,8 @@ import org.firstinspires.ftc.teamcode.subsystem.ShooterSubsystem;
 public class CannonSailFar extends CannonSail {
     private final double rpm;
 
-    public CannonSailFar(ShooterSubsystem shooter, IntakeSubsystem intake, SequenceMapper.Sequence sequence, int index) {
-        super(shooter, intake, sequence, index);
+    public CannonSailFar(ShooterSubsystem shooter, IntakeSubsystem intake, SequenceMapper.Sequence sequence) {
+        super(shooter, intake, sequence);
 
         rpm = shooter.getStationaryRPM_Far();
     }

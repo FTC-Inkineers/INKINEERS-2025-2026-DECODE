@@ -7,8 +7,8 @@ public class CannonSailClose extends CannonSail {
 
     private final double rpm;
 
-    public CannonSailClose(ShooterSubsystem shooter, IntakeSubsystem intake, SequenceMapper.Sequence sequence, int index) {
-        super(shooter, intake, sequence, index);
+    public CannonSailClose(ShooterSubsystem shooter, IntakeSubsystem intake, SequenceMapper.Sequence sequence) {
+        super(shooter, intake, sequence);
 
         rpm = shooter.getStationaryRPM_Close();
     }

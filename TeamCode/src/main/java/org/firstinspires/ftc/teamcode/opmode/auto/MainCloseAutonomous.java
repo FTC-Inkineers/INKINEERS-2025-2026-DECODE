@@ -155,7 +155,7 @@ public abstract class MainCloseAutonomous extends OpMode {
                 if (!drive.follower.isBusy()) {
                     // Shoot once arrived - Index 1
                     SequenceMapper.Sequence sequence = getShootingSequence(motif, 1);
-                    navigator.setSail(new CannonSailClose(shooter, intake, sequence, 1));
+                    navigator.setSail(new CannonSailClose(shooter, intake, sequence));
                     setPathState(3);
                 }
                 break;
@@ -191,7 +191,7 @@ public abstract class MainCloseAutonomous extends OpMode {
     private int index = 1;
     public void autoShoot(int index, boolean farShot) {
         SequenceMapper.Sequence sequence = getShootingSequence(motif, index);
-        navigator.setSail(farShot ? new CannonSailFar(shooter, intake, sequence, index) : new CannonSailClose(shooter, intake, sequence, index));
+        navigator.setSail(farShot ? new CannonSailFar(shooter, intake, sequence) : new CannonSailClose(shooter, intake, sequence));
     }
 
     public void autoIntake() {
