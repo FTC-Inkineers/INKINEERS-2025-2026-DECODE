@@ -48,6 +48,7 @@ public class RGBSubsystem {
                 } else {
                     if (targetVisible) {
                         setColor(goBILDA_RGB_Servo.YELLOW);
+                        startPulse();
                     } else {
                         setColor(goBILDA_RGB_Servo.RED);
                     }
