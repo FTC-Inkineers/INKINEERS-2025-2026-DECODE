@@ -14,7 +14,7 @@ public class RGBSubsystem {
     // Pulse State Variables
     private boolean isPulsing = false;
     private final ElapsedTime pulseTimer = new ElapsedTime();
-    private static final double PULSE_AMPLITUDE = 0.05;
+    private static final double PULSE_AMPLITUDE = 0.02;
     private static final double PULSE_SPEED = 3.0;
 
 
@@ -47,7 +47,7 @@ public class RGBSubsystem {
                     }
                 } else {
                     if (targetVisible) {
-                        setColor(goBILDA_RGB_Servo.YELLOW);
+                        setColor(0.360);
                         startPulse();
                     } else {
                         setColor(goBILDA_RGB_Servo.RED);

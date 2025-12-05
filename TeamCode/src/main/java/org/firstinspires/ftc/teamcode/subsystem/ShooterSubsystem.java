@@ -25,13 +25,15 @@ public class ShooterSubsystem {
     // Constants
     private final int SHOOTER_TICKS_PER_REV = 28;
     private final double MAX_RPM = MAX_FLYWHEEL_RPM;
-    private double STATIONARY_RPM_FAR = 3200;
-    private final double STATIONARY_RPM_CLOSE = 2800;
+    private double STATIONARY_RPM_FAR = 3300;
+    private final double STATIONARY_RPM_CLOSE = 2400;
 
     private final double HOOD_MAX_EXTEND = 1;
     private final double HOOD_MAX_RETRACT = 0.5;
 
     public static double triggerPower = 0.92;
+
+    public static double SHOOTER_CRUISE_POWER = 0.3;
 
     // Tuning (Dashboard)
     public static double kF = 0.78 / 3514.0; // Motor Power / RPM | 0.78 / 3514 RPM
@@ -54,12 +56,14 @@ public class ShooterSubsystem {
     private String triggerMessage = "idle";
     private boolean justFired = false;
     private boolean justReady = false;
+    private boolean gameEnded = false;
 
     private final ElapsedTime triggerTimer = new ElapsedTime();
     private final ElapsedTime shooterTimer = new ElapsedTime();
 
     private double spinUpTime = 0;
     private double targetRPM = 0;
+    private double currentRPM = 0;
     private double targetPower = 0;
     private double lastFilteredRPM = 0.0;
     private double error;
@@ -114,7 +118,11 @@ public class ShooterSubsystem {
     }
 
     private void updateState() {
-        double currentRPM = getCurrentRPM();
+        double rawRPM = shooterMotor.getVelocity() / SHOOTER_TICKS_PER_REV * 60;
+        // Apply EMA filter
+        double filteredRPM = (SMOOTHING_ALPHA * rawRPM) + ((1.0 - SMOOTHING_ALPHA) * lastFilteredRPM);
+        lastFilteredRPM = filteredRPM;
+        currentRPM = filteredRPM;
 
         switch (currentState) {
             case IDLE:
@@ -153,7 +161,7 @@ public class ShooterSubsystem {
             case RAMPING_DOWN:
                 if (targetRPM > 0) {
                     currentState = ShooterState.RAMPING_UP;
-                } else if (currentRPM < 50) { // Threshold for "stopped"
+                } else if (currentRPM < 1100) { // Threshold for "stopped"
                     currentState = ShooterState.IDLE;
                 }
                 break;
@@ -168,7 +176,7 @@ public class ShooterSubsystem {
 
         switch (currentState) {
             case IDLE:
-                finalPower = 0;
+                finalPower = gameEnded ? 0.0 : SHOOTER_CRUISE_POWER;
                 shooterController.reset(); // Clear integral windup
                 break;
 
@@ -197,6 +205,11 @@ public class ShooterSubsystem {
             STATIONARY_RPM_FAR -= 100;
         }
 
+        // Set power to 0.0 vs. 0.3
+        if (gamepad.backWasPressed()) {
+            gameEnded = !gameEnded;
+        }
+
         // Determine if we want to shoot
         boolean wantToShoot = (gamepad.right_trigger > 0 || gamepad.left_trigger > 0);
 
@@ -205,7 +218,8 @@ public class ShooterSubsystem {
 
             if (targetTag != null) {
                 // Auto-select RPM based on vision
-                targetRPM = (targetTag.getTargetYDegrees() < -0.5) ? STATIONARY_RPM_FAR : STATIONARY_RPM_CLOSE;
+                double yError = targetTag.getTargetYDegrees();
+                targetRPM = yError < -0.5 ? STATIONARY_RPM_FAR : STATIONARY_RPM_CLOSE; // 3171 + (-119 * yError) + (5.52 * Math.pow(yError, 2));
             } else if (gamepad.right_trigger > 0) {
                 targetRPM = STATIONARY_RPM_FAR;
             } else {
@@ -226,7 +240,10 @@ public class ShooterSubsystem {
             reverseTrigger();
             triggerMessage = "reversing";
         } else if (gamepad.a) {
-            pullTrigger();
+            // Disabled firing when RAMPING UP and currentRPM is less than 85% of the target RPM.
+            if (getState() != ShooterState.RAMPING_UP || !(currentRPM / targetRPM < 0.85)) {
+                pullTrigger();
+            }
             triggerMessage = "firing";
         } else {
             releaseTrigger();
@@ -247,11 +264,7 @@ public class ShooterSubsystem {
     // --- UTILITY METHODS ---
 
     public double getCurrentRPM() {
-        double rawRPM = shooterMotor.getVelocity() / SHOOTER_TICKS_PER_REV * 60;
-        // Apply EMA filter
-        double filteredRPM = (SMOOTHING_ALPHA * rawRPM) + ((1.0 - SMOOTHING_ALPHA) * lastFilteredRPM);
-        lastFilteredRPM = filteredRPM;
-        return filteredRPM;
+        return currentRPM;
     }
 
     // --- PUBLIC HELPERS (For Auto/OpMode) ---
@@ -264,6 +277,7 @@ public class ShooterSubsystem {
         return currentState;
     }
 
+    @SuppressWarnings("unused")
     public boolean wasShotFired() {
         if (justFired) {
             justFired = false; // Reset so we don't count the same shot twice
@@ -297,6 +311,7 @@ public class ShooterSubsystem {
         telemetry.addData("Target RPM:", targetRPM);
         telemetry.addData("Current RPM:", getCurrentRPM());
         telemetry.addData("Error:", error);
+        telemetry.addData("Game Ended", gameEnded);
     }
 
     // --- PRIMITIVES ---
@@ -373,6 +388,8 @@ public class ShooterSubsystem {
         } else if (gamepad.left_bumper) {
             changeFactor = 0.01;
         }
+
+        updateState();
 
         shooterMotor.setPower(testPower);
     }
