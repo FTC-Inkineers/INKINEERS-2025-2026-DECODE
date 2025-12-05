@@ -73,6 +73,7 @@
             // Always run shooter PID
             shooter.updateShooterPhysics();
 
+            // Will change based on Sequence...
             runRLM();
         }
 
@@ -95,20 +96,206 @@
             timer.reset();
         }
 
-        public void runLMR() {
+        // Each Sequence
 
+        public void runLMR() {
+            switch (currentState) {
+                case RAMP_UP:
+                    // Store Middle Element
+                    shooter.reverseTrigger();
+                    // Wait for the shooter to reach its target RPM or timeout
+                    if (shooter.isReady() || timer.seconds() > SHOOTER_RAMP_UP_TIMEOUT) {
+                        prepareNextShot();
+                        currentState = ShootState.FIRE_1;
+                    }
+                    break;
+                case FIRE_1:
+                    // Intake and Shoot Right Element
+                    if (timer.seconds() > 0.8) {
+                        intake.stop();
+                        shooter.pullTrigger();
+                    } else {
+                        intake.setIntake(LEFT, INTAKE);
+                    }
+                    // Next Shot
+                    if (timer.seconds() > SHOOT_INTERVAL_TIMEOUT) {
+                        prepareNextShot();
+                        currentState = ShootState.FIRE_2;
+                    }
+                    break;
+                case FIRE_2:
+                    // Shoot Middle Element
+                    shooter.pullTrigger();
+                    // Next Shot
+                    if (timer.seconds() > SHOOT_INTERVAL_TIMEOUT) {
+                        prepareNextShot();
+                        currentState = ShootState.FIRE_3;
+                    }
+                    break;
+                case FIRE_3:
+                    // Shoot Left Element
+                    shooter.pullTrigger();
+                    intake.setIntake(RIGHT, INTAKE);
+                    // Done
+                    if (timer.seconds() > SHOOT_INTERVAL_TIMEOUT) {
+                        intake.stop();
+                        currentState = ShootState.DONE;
+                    }
+                    break;
+            }
         }
 
         public void runLRM() {
-
+            switch (currentState) {
+                case RAMP_UP:
+                    // Store Middle Element
+                    shooter.reverseTrigger();
+                    // Wait for the shooter to reach its target RPM or timeout
+                    if (shooter.isReady() || timer.seconds() > SHOOTER_RAMP_UP_TIMEOUT) {
+                        prepareNextShot();
+                        currentState = ShootState.FIRE_1;
+                    }
+                    break;
+                case FIRE_1:
+                    // Intake and Shoot Right Element
+                    if (timer.seconds() > 0.8) {
+                        intake.stop();
+                        shooter.pullTrigger();
+                    } else {
+                        intake.setIntake(LEFT, INTAKE);
+                    }
+                    // Next Shot
+                    if (timer.seconds() > SHOOT_INTERVAL_TIMEOUT) {
+                        prepareNextShot();
+                        currentState = ShootState.FIRE_2;
+                    }
+                    break;
+                case FIRE_2:
+                    // Shoot Left Element
+                    if (timer.seconds() > 0.8) {
+                        intake.stop();
+                        shooter.pullTrigger();
+                    } else {
+                        intake.setIntake(RIGHT, INTAKE);
+                        shooter.reverseTrigger();
+                    }
+                    // Next Shot
+                    if (timer.seconds() > SHOOT_INTERVAL_TIMEOUT) {
+                        prepareNextShot();
+                        currentState = ShootState.FIRE_3;
+                    }
+                    break;
+                case FIRE_3:
+                    // Shoot Middle Element
+                    shooter.pullTrigger();
+                    // Done
+                    if (timer.seconds() > SHOOT_INTERVAL_TIMEOUT) {
+                        intake.stop();
+                        currentState = ShootState.DONE;
+                    }
+                    break;
+            }
         }
 
         public void runMLR() {
-
+            switch (currentState) {
+                case RAMP_UP:
+                    // Wait for the shooter to reach its target RPM or timeout
+                    if (shooter.isReady() || timer.seconds() > SHOOTER_RAMP_UP_TIMEOUT) {
+                        prepareNextShot();
+                        currentState = ShootState.FIRE_1;
+                    }
+                    break;
+                case FIRE_1:
+                    // Shoot Middle Element
+                    shooter.pullTrigger();
+                    // Next Shot
+                    if (timer.seconds() > SHOOT_INTERVAL_TIMEOUT) {
+                        prepareNextShot();
+                        currentState = ShootState.FIRE_2;
+                    }
+                    break;
+                case FIRE_2:
+                    // Shoot Left Element
+                    if (timer.seconds() > 0.4) {
+                        intake.stop();
+                        shooter.pullTrigger();
+                    } else {
+                        intake.setIntake(LEFT, INTAKE);
+                    }
+                    shooter.pullTrigger();
+                    // Next Shot
+                    if (timer.seconds() > SHOOT_INTERVAL_TIMEOUT) {
+                        prepareNextShot();
+                        currentState = ShootState.FIRE_3;
+                    }
+                    break;
+                case FIRE_3:
+                    // Shoot Right Element
+                    if (timer.seconds() > 0.4) {
+                        intake.stop();
+                        shooter.pullTrigger();
+                    } else {
+                        intake.setIntake(RIGHT, INTAKE);
+                    }
+                    shooter.pullTrigger();
+                    // Done
+                    if (timer.seconds() > SHOOT_INTERVAL_TIMEOUT) {
+                        intake.stop();
+                        currentState = ShootState.DONE;
+                    }
+                    break;
+            }
         }
 
         public void runMRL() {
-
+            switch (currentState) {
+                case RAMP_UP:
+                    // Wait for the shooter to reach its target RPM or timeout
+                    if (shooter.isReady() || timer.seconds() > SHOOTER_RAMP_UP_TIMEOUT) {
+                        prepareNextShot();
+                        currentState = ShootState.FIRE_1;
+                    }
+                    break;
+                case FIRE_1:
+                    // Shoot Middle Element
+                    shooter.pullTrigger();
+                    // Next Shot
+                    if (timer.seconds() > SHOOT_INTERVAL_TIMEOUT) {
+                        prepareNextShot();
+                        currentState = ShootState.FIRE_2;
+                    }
+                    break;
+                case FIRE_2:
+                    // Shoot Right Element
+                    if (timer.seconds() > 0.4) {
+                        intake.stop();
+                        shooter.pullTrigger();
+                    } else {
+                        intake.setIntake(RIGHT, INTAKE);
+                    }
+                    // Next Shot
+                    if (timer.seconds() > SHOOT_INTERVAL_TIMEOUT) {
+                        prepareNextShot();
+                        currentState = ShootState.FIRE_3;
+                    }
+                    break;
+                case FIRE_3:
+                    // Shoot Left Element
+                    if (timer.seconds() > 0.4) {
+                        intake.stop();
+                        shooter.pullTrigger();
+                    } else {
+                        intake.setIntake(LEFT, INTAKE);
+                    }
+                    shooter.pullTrigger();
+                    // Done
+                    if (timer.seconds() > SHOOT_INTERVAL_TIMEOUT) {
+                        intake.stop();
+                        currentState = ShootState.DONE;
+                    }
+                    break;
+            }
         }
 
         public void runRLM() {

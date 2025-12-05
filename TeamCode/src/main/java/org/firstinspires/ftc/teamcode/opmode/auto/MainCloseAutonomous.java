@@ -201,37 +201,67 @@ public abstract class MainCloseAutonomous extends OpMode {
             intake.setIntake(RIGHT, INTAKE);
         }
     }
-    
+
     protected SequenceMapper.Sequence getShootingSequence(VisionSubsystem.ObeliskMotif motif, int index) {
-        SequenceMapper.PositionConfig target;
-        switch (motif) {
-            case GPP: target = SequenceMapper.PositionConfig.GPP; break;
-            case PPG: target = SequenceMapper.PositionConfig.PPG; break;
-            case PGP: 
-            default: target = SequenceMapper.PositionConfig.PGP; break;
-        }
-        
+        // 1. Determine what the pattern looks like on the wall (Target)
+        SequenceMapper.PositionConfig target = getTargetConfigFromMotif(motif);
+
+        // 2. Determine what the pattern looks like in the robot's intake (Source)
         SequenceMapper.PositionConfig current = getConfigForIndex(index);
-        
+
+        // 3. Calculate the sequence required to transform Source -> Target
         return sequenceMapper.getMappedSequenceEnum(target, current);
     }
 
+    /**
+     * Maps a specific field index (0-4) to its physical ball configuration.
+     *
+     * Layout Definition (Blue Alliance Perspective):
+     * Index 0 (Preload): GPP
+     * Index 1: GPP
+     * Index 2: PGP
+     * Index 3: PPG
+     * Index 4: PGP
+     * (Totals: 2 GPP, 2 PGP, 1 PPG)
+     */
     protected SequenceMapper.PositionConfig getConfigForIndex(int index) {
-        if (index == 0) return SequenceMapper.PositionConfig.GPP; // Default for preloaded
+        SequenceMapper.PositionConfig blueConfig;
+
+        switch (index) {
+            case 0:
+                blueConfig = SequenceMapper.PositionConfig.GPP; // Preload
+                break;
+            case 1:
+                blueConfig = SequenceMapper.PositionConfig.GPP;
+                break;
+            case 2:
+                blueConfig = SequenceMapper.PositionConfig.PGP;
+                break;
+            case 3:
+                blueConfig = SequenceMapper.PositionConfig.PPG;
+                break;
+            case 4:
+                blueConfig = SequenceMapper.PositionConfig.PGP;
+                break;
+            default:
+                blueConfig = SequenceMapper.PositionConfig.GPP;
+                break;
+        }
 
         if (isBlueSide()) {
-            switch (index) {
-                case 1: return SequenceMapper.PositionConfig.GPP;
-                case 2: return SequenceMapper.PositionConfig.PGP;
-                case 3: return SequenceMapper.PositionConfig.PPG;
-            }
+            return blueConfig;
         } else {
-            switch (index) {
-                case 1: return SequenceMapper.PositionConfig.PPG;
-                case 2: return SequenceMapper.PositionConfig.PGP;
-                case 3: return SequenceMapper.PositionConfig.GPP;
-            }
+            return SequenceMapper.getMirroredConfig(blueConfig);
         }
-        return SequenceMapper.PositionConfig.GPP; // Default
     }
+
+    protected SequenceMapper.PositionConfig getTargetConfigFromMotif(VisionSubsystem.ObeliskMotif motif) {
+        switch (motif) {
+            case GPP: return SequenceMapper.PositionConfig.GPP;
+            case PPG: return SequenceMapper.PositionConfig.PPG;
+            case PGP: return SequenceMapper.PositionConfig.PGP;
+            default:  return SequenceMapper.PositionConfig.PGP; // Default if vision fails
+        }
+    }
+
 }
