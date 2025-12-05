@@ -188,7 +188,7 @@ public abstract class MainCloseAutonomous extends OpMode {
         pathTimer.reset();
     }
 
-    private int index = 1;
+    private int index = 0;
     public void autoShoot(int index, boolean farShot) {
         SequenceMapper.Sequence sequence = getShootingSequence(motif, index);
         navigator.setSail(farShot ? new CannonSailFar(shooter, intake, sequence) : new CannonSailClose(shooter, intake, sequence));

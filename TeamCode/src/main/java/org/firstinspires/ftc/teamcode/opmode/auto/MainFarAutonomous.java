@@ -281,7 +281,7 @@ public abstract class MainFarAutonomous extends OpMode {
         drive.follower.followPath(parkPath, 0.8, true);
     }
 
-    private int index = 1;
+    private int index = 0;
     public void autoShoot(int index, boolean farShot) {
         SequenceMapper.Sequence sequence = getShootingSequence(motif, index);
         navigator.setSail(farShot ? new CannonSailFar(shooter, intake, sequence) : new CannonSailClose(shooter, intake, sequence));
