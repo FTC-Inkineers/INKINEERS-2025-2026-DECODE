@@ -14,7 +14,7 @@ public class CannonSailClose extends CannonSail {
     }
 
     @Override
-    protected double rpm() {
+    protected double targetRpm() {
         return rpm;
     }
 }

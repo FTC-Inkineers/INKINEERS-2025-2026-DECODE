@@ -34,6 +34,7 @@ public class IntakeSubsystem {
 
     private double power = 0.96;
 
+    @SuppressWarnings("unused")
     public void setPower(double power) {
         this.power = power;
     }

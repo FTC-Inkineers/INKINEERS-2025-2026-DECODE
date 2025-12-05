@@ -13,7 +13,7 @@ public class CannonSailFar extends CannonSail {
     }
 
     @Override
-    protected double rpm() {
+    protected double targetRpm() {
         return rpm;
     }
 }
