@@ -30,20 +30,27 @@ public class RGBSubsystem {
         baseColor = goBILDA_RGB_Servo.GREEN;
     }
 
-    public void runTeleOp(DriveSubsystem.DriveState driveState, boolean lockedOn) {
+    public void runTeleOp(DriveSubsystem.DriveState driveState, boolean targetVisible, boolean lockedOn, boolean shooterReady) {
         // 1. Determine the Base Behavior (Solid Color vs Pulse)
         isPulsing = false; // Reset default
 
         switch (driveState) {
             case MANUAL:
-                setColor(goBILDA_RGB_Servo.GREEN);
+                setColor(goBILDA_RGB_Servo.WHITE);
                 break;
             case MANUAL_AIM_ASSIST:
                 if (lockedOn) {
-                    setColor(goBILDA_RGB_Servo.RED);
+                    if (shooterReady) {
+                        setColor(goBILDA_RGB_Servo.BLUE);
+                    } else {
+                        setColor(goBILDA_RGB_Servo.GREEN);
+                    }
                 } else {
-                    setColor(goBILDA_RGB_Servo.YELLOW);
-                    startPulse(); // Enable pulsing for this state
+                    if (targetVisible) {
+                        setColor(goBILDA_RGB_Servo.YELLOW);
+                    } else {
+                        setColor(goBILDA_RGB_Servo.RED);
+                    }
                 }
                 break;
             case HOLD_POSITION:

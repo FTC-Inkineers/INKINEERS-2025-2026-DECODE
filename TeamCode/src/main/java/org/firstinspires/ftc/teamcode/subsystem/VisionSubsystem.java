@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class VisionSubsystem {
@@ -25,9 +26,10 @@ public class VisionSubsystem {
         UNKNOWN
     }
     private ObeliskMotif motif = ObeliskMotif.UNKNOWN;
-
     private final Limelight3A limelight;
     private LLResult latestResult;
+    private List<LLResultTypes.FiducialResult> fiducials = new ArrayList<>();
+    private LLResultTypes.FiducialResult targetTag = null;
     private final int targetTagId;
 
     public VisionSubsystem(HardwareMap hardwareMap, boolean isBlueSide) {
@@ -43,15 +45,24 @@ public class VisionSubsystem {
     }
 
     public void update() {
-        latestResult = limelight.getLatestResult();
+        LLResult result = limelight.getLatestResult();
+        if (result != null) {
+            latestResult = result;
+            fiducials = latestResult.getFiducialResults();
+
+            targetTag = null;
+            for (LLResultTypes.FiducialResult fiducial : fiducials) {
+                if (fiducial.getFiducialId() == targetTagId) {
+                    targetTag = fiducial;
+                }
+            }
+        }
     }
 
     public ObeliskMotif detectObeliskMotif() {
-        if (latestResult == null || latestResult.getFiducialResults().isEmpty()) {
+        if (latestResult == null) {
             return ObeliskMotif.UNKNOWN;
         }
-
-        List<LLResultTypes.FiducialResult> fiducials = latestResult.getFiducialResults();
 
         for (LLResultTypes.FiducialResult fiducial : fiducials) {
             switch (fiducial.getFiducialId()) {
@@ -69,11 +80,6 @@ public class VisionSubsystem {
         return ObeliskMotif.UNKNOWN;
     }
 
-    @SuppressWarnings("unused")
-    public ObeliskMotif getObeliskMotif() {
-        return motif;
-    }
-
     public boolean isTargetVisible() {
         return getTargetTag() != null;
     }
@@ -83,18 +89,7 @@ public class VisionSubsystem {
      * @return The FiducialResult of the target tag, or null if it's not detected.
      */
     public LLResultTypes.FiducialResult getTargetTag() {
-        if (latestResult == null || latestResult.getFiducialResults().isEmpty()) {
-            return null;
-        }
-
-        List<LLResultTypes.FiducialResult> fiducials = latestResult.getFiducialResults();
-
-        for (LLResultTypes.FiducialResult fiducial : fiducials) {
-            if (fiducial.getFiducialId() == targetTagId) {
-                return fiducial; // Return the first match with the correct ID
-            }
-        }
-        return null;
+        return targetTag;
     }
 
     public void sendTelemetry(Telemetry telemetry, boolean enableAll) {

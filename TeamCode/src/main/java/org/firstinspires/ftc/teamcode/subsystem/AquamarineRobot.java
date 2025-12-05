@@ -63,7 +63,7 @@ public class AquamarineRobot {
         drive.sendAllTelemetry(telemetry, enableALlDriveTelemetry);
         intake.sendAllTelemetry(telemetry, enableAllIntakeTelemetry);
         vision.sendTelemetry(telemetry, enableAllVisionTelemetry);
-        rgb.runTeleOp(drive.getDriveState(), drive.getLockedOn());
+        rgb.runTeleOp(drive.getDriveState(), vision.isTargetVisible(), drive.getLockedOn(), shooter.isReady());
         // Add other relevant telemetry from other subsystems if needed
     }
 }
