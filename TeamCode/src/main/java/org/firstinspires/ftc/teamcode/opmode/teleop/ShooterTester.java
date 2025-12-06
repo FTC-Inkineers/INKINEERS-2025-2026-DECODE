@@ -23,7 +23,7 @@ public class ShooterTester extends OpMode {
 
     @Override
     public void loop() {
-        shooterSubsystem.runTeleOp(gamepad1);
+        shooterSubsystem.runTeleOp(gamepad1, null);
 
         // Telemetry
         shooterSubsystem.sendAllTelemetry(telemetry, true);

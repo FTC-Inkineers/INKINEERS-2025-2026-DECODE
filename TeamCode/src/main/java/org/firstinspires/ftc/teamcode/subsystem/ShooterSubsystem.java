@@ -34,6 +34,7 @@ public class ShooterSubsystem {
     public static double triggerPower = 0.92;
 
     public static double SHOOTER_CRUISE_POWER = 0.3;
+    public static double IDLE_TIMEOUT_SECONDS = 20.0;
 
     // Tuning (Dashboard)
     public static double kF = 0.78 / 3514.0; // Motor Power / RPM | 0.78 / 3514 RPM
@@ -60,6 +61,7 @@ public class ShooterSubsystem {
 
     private final ElapsedTime triggerTimer = new ElapsedTime();
     private final ElapsedTime shooterTimer = new ElapsedTime();
+    private final ElapsedTime idleTimer = new ElapsedTime();
 
     private double spinUpTime = 0;
     private double targetRPM = 0;
@@ -98,12 +100,12 @@ public class ShooterSubsystem {
         targetPower = output.total;
     }
 
-    public void runTeleOp(Gamepad gamepad) {
+    public void runTeleOp(Gamepad gamepad, DriveSubsystem.DriveState driveState) {
         // 1. Update Tuning
         shooterController.setGains(kF, kP, kI, kD);
 
         // 2. Handle Inputs (Determine Desired RPM)
-        runShooter(gamepad);
+        runShooter(gamepad, driveState);
         runTrigger(gamepad);
         runHood(gamepad);
 
@@ -163,6 +165,7 @@ public class ShooterSubsystem {
                     currentState = ShooterState.RAMPING_UP;
                 } else if (currentRPM < 1100) { // Threshold for "stopped"
                     currentState = ShooterState.IDLE;
+                    idleTimer.reset();
                 }
                 break;
         }
@@ -176,7 +179,8 @@ public class ShooterSubsystem {
 
         switch (currentState) {
             case IDLE:
-                finalPower = gameEnded ? 0.0 : SHOOTER_CRUISE_POWER;
+                boolean isTimedOut = idleTimer.seconds() > IDLE_TIMEOUT_SECONDS;
+                finalPower = (gameEnded || isTimedOut) ? 0.0 : SHOOTER_CRUISE_POWER;
                 shooterController.reset(); // Clear integral windup
                 break;
 
@@ -197,7 +201,7 @@ public class ShooterSubsystem {
         shooterMotor.setPower(finalPower);
     }
 
-    private void runShooter(Gamepad gamepad) {
+    private void runShooter(Gamepad gamepad, DriveSubsystem.DriveState driveState) {
         // RPM Adjustment
         if (gamepad.dpadUpWasPressed()) {
             STATIONARY_RPM_FAR += 100;
@@ -211,7 +215,7 @@ public class ShooterSubsystem {
         }
 
         // Determine if we want to shoot
-        boolean wantToShoot = (gamepad.right_trigger > 0 || gamepad.left_trigger > 0);
+        boolean wantToShoot = (gamepad.right_trigger > 0 || gamepad.left_trigger > 0 || driveState == DriveSubsystem.DriveState.MANUAL_AIM_ASSIST);
 
         if (wantToShoot) {
             LLResultTypes.FiducialResult targetTag = vision.getTargetTag();

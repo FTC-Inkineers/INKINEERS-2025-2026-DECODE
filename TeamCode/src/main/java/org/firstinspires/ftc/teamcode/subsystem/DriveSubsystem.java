@@ -50,7 +50,7 @@ public class DriveSubsystem {
         HOLD_POSITION
     }
     
-    DriveState driveState;
+    private DriveState driveState;
 
     public DriveSubsystem(HardwareMap hardwareMap, VisionSubsystem visionSubsystem, boolean isBlueSide) {
 

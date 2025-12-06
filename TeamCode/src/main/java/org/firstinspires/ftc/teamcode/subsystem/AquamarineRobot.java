@@ -47,7 +47,7 @@ public class AquamarineRobot {
     public void runTeleOp() {
         vision.update();
         drive.runTeleOp(shooter.isActive());
-        shooter.runTeleOp(gamepad2);
+        shooter.runTeleOp(gamepad2, drive.getDriveState());
         intake.runTeleOp(gamepad1);
 
         // Was shot fired!?
