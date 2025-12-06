@@ -44,6 +44,10 @@ public class AquamarineRobot {
         drive.start();
     }
 
+    public void initLoop() {
+        vision.update();
+    }
+
     public void runTeleOp() {
         vision.update();
         drive.runTeleOp(shooter.isActive());
@@ -54,7 +58,6 @@ public class AquamarineRobot {
         if (shooter.wasReady()) {
             gamepad2.stopRumble();
             gamepad2.rumble(300);
-            rgb.flash();
         }
     }
 

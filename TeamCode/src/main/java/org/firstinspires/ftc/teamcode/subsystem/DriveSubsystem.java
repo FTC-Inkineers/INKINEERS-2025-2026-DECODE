@@ -124,7 +124,7 @@ public class DriveSubsystem {
         }
     }
 
-    DriveState lastManualState;
+    private DriveState lastManualState;
     private void handleStateTransitions() {
         // HOLD_POSITION has the highest priority. Pressing Y enters this state.
         if (gamepad1.y) {

@@ -28,6 +28,11 @@ public abstract class AquamarineDrive extends OpMode {
     }
 
     @Override
+    public void init_loop() {
+        robot.initLoop();
+    }
+
+    @Override
     public void loop() {
         // Track Loop Time
         loopTimer.reset();

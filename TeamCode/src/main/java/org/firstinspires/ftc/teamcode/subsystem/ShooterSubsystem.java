@@ -26,12 +26,13 @@ public class ShooterSubsystem {
     private final int SHOOTER_TICKS_PER_REV = 28;
     private final double MAX_RPM = MAX_FLYWHEEL_RPM;
     private double STATIONARY_RPM_FAR = 3300;
-    private final double STATIONARY_RPM_CLOSE = 2400;
+    private final double STATIONARY_RPM_CLOSE = 2700;
 
     private final double HOOD_MAX_EXTEND = 1;
     private final double HOOD_MAX_RETRACT = 0.5;
 
     public static double triggerPower = 0.92;
+    public static double TRIGGER_THRESHOLD = 0.90; // In percent
 
     public static double SHOOTER_CRUISE_POWER = 0.3;
     public static double IDLE_TIMEOUT_SECONDS = 20.0;
@@ -223,10 +224,10 @@ public class ShooterSubsystem {
             if (targetTag != null) {
                 // Auto-select RPM based on vision
                 double yError = targetTag.getTargetYDegrees();
-                targetRPM = yError < -0.5 ? STATIONARY_RPM_FAR : STATIONARY_RPM_CLOSE; // 3171 + (-119 * yError) + (5.52 * Math.pow(yError, 2));
+                targetRPM = yError < 0.5 ? STATIONARY_RPM_FAR : STATIONARY_RPM_CLOSE; // 3171 + (-119 * yError) + (5.52 * Math.pow(yError, 2));
             } else if (gamepad.right_trigger > 0) {
                 targetRPM = STATIONARY_RPM_FAR;
-            } else {
+            } else if (gamepad.left_trigger > 0){
                 targetRPM = STATIONARY_RPM_CLOSE;
             }
             // Safety Clamp
@@ -245,7 +246,7 @@ public class ShooterSubsystem {
             triggerMessage = "reversing";
         } else if (gamepad.a) {
             // Disabled firing when RAMPING UP and currentRPM is less than 85% of the target RPM.
-            if (getState() != ShooterState.RAMPING_UP || !(currentRPM / targetRPM < 0.85)) {
+            if (getState() != ShooterState.RAMPING_UP || !(currentRPM / targetRPM < TRIGGER_THRESHOLD)) {
                 pullTrigger();
             }
             triggerMessage = "firing";
