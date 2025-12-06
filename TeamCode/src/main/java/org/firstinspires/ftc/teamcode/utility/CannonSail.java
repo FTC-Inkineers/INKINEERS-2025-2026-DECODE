@@ -136,8 +136,9 @@ UNKNOWN: same as PGP
                 }
                 break;
             case FIRE_2:
-                // Shoot Middle Element
-                shooter.pullTrigger();
+                if (timer.seconds() > 0.4)
+                    // Shoot Middle Element
+                    shooter.pullTrigger();
                 // Next Shot
                 if (timer.seconds() > SHOOT_INTERVAL_TIMEOUT) {
                     prepareNextShot();
@@ -390,8 +391,9 @@ UNKNOWN: same as PGP
                 }
                 break;
             case FIRE_2:
-                // Shoot Middle Element
-                shooter.pullTrigger();
+                if (timer.seconds() > 0.4)
+                    // Shoot Middle Element
+                    shooter.pullTrigger();
                 // Next Shot
                 if (timer.seconds() > SHOOT_INTERVAL_TIMEOUT) {
                     prepareNextShot();

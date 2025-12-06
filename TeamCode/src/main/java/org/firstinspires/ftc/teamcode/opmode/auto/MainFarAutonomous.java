@@ -145,9 +145,16 @@ public abstract class MainFarAutonomous extends OpMode {
 
             case 1:
                 // Second cycle (Far Shot) - Index 3
-                if (runCycle(paths.Path3, paths.Path4, true, 3, 0.35)) {
-                    setPathState(2);
+                if (variant == Species.SYMBIOTIC) {
+                    if (runCycle(paths.Path3, paths.Path4, true, 3, 0.35)) {
+                        setPathState(2);
+                    }
+                } else {
+                    if (runCycle(paths.Path3, paths.Path4, true, 3)) {
+                        setPathState(2);
+                    }
                 }
+
                 break;
 
             case 2:
@@ -207,7 +214,7 @@ public abstract class MainFarAutonomous extends OpMode {
     }
 
     private boolean runCycle(PathChain toShootPath, @Nullable PathChain toIntakePath, boolean isFarShot, int configIndex) {
-        return runCycle(toShootPath, toIntakePath, isFarShot, configIndex, 0.8);
+        return runCycle(toShootPath, toIntakePath, isFarShot, configIndex, 0.6);
     }
 
     public boolean runCycle(PathChain toShootPath, @Nullable PathChain toIntakePath, boolean isFarShot, int configIndex, double intakePathSpeed) {

@@ -34,7 +34,7 @@ public class ClosePaths {
     private Pose p6_end = new Pose(12.000, 84.000);
     private double p6_end_h = Math.toRadians(180);
 
-    private Pose pClose_end = new Pose(55.000, 60.000);
+    private Pose pClose_end = new Pose(55.000, 116);
     private double pClose_end_h = Math.toRadians(180);
     // endregion
 

@@ -36,8 +36,8 @@ public class FarPaths {
     private double p3_end_h = Math.toRadians(204);
 
     // Shoot pose 2 to Intake 2
-    private Pose p4_c1 = new Pose(60.000, 64.000 + 4.0); // Manual Correction
-    private Pose p4_end = new Pose(12.000, 60.000 + 4.0); // Manual Correction
+    private Pose p4_c1 = new Pose(60.000, 64.000 + 3.5); // Manual Correction
+    private Pose p4_end = new Pose(12.000, 60.000 + 3.5); // Manual Correction
     private double p4_end_h = Math.toRadians(180);
 
     // Intake 2 to Shoot pose 3
@@ -50,8 +50,8 @@ public class FarPaths {
     private double p6_end_h = Math.toRadians(180);
 
     // Shoot pose to Intake 4
-    private Pose p7_c1 = new Pose(60.000, 8.000);
-    private Pose p7_end = new Pose(3.000, 8.000);
+    private Pose p7_c1 = new Pose(60.000, 10.000);
+    private Pose p7_end = new Pose(3.000, 10.000);
     private double p7_end_h = Math.toRadians(180);
 
     // Intake 3 to Shoot pose 4
