@@ -224,7 +224,7 @@ public class ShooterSubsystem {
             if (targetTag != null) {
                 // Auto-select RPM based on vision
                 double yError = targetTag.getTargetYDegrees();
-                targetRPM = yError < 0.5 ? STATIONARY_RPM_FAR : STATIONARY_RPM_CLOSE; // 3171 + (-119 * yError) + (5.52 * Math.pow(yError, 2));
+                targetRPM = yError < 0.5 ? STATIONARY_RPM_FAR : 3171 + (-119 * yError) + (5.52 * Math.pow(yError, 2)); // 3171 + (-119 * yError) + (5.52 * Math.pow(yError, 2));
             } else if (gamepad.right_trigger > 0) {
                 targetRPM = STATIONARY_RPM_FAR;
             } else if (gamepad.left_trigger > 0){

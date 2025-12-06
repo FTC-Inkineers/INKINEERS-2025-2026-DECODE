@@ -56,6 +56,7 @@ public abstract class MainFarAutonomous extends OpMode {
         MOVING_TO_INTAKE
     }
     private CycleState cycleState = CycleState.IDLE;
+    private SequenceMapper.Sequence shootingSequence = SequenceMapper.Sequence.MLR;
 
     @Override
     public void init() {
@@ -120,7 +121,7 @@ public abstract class MainFarAutonomous extends OpMode {
         telemetry.addData("Opmode Time", opmodeTimer.toString());
         telemetry.addData("Path Timer", pathTimer.toString());
         telemetry.addData("Pattern Locked", motif);
-        telemetry.addData("SHOOTING_INDEX", index);
+        telemetry.addData("Shooting Sequence", shootingSequence);
         drive.sendAllTelemetry(telemetry, true);
         shooter.sendAllTelemetry(telemetry, false);
         telemetry.update();
@@ -144,7 +145,7 @@ public abstract class MainFarAutonomous extends OpMode {
 
             case 1:
                 // Second cycle (Far Shot) - Index 3
-                if (runCycle(paths.Path3, paths.Path4, true, 3)) {
+                if (runCycle(paths.Path3, paths.Path4, true, 3, 0.35)) {
                     setPathState(2);
                 }
                 break;
@@ -157,7 +158,7 @@ public abstract class MainFarAutonomous extends OpMode {
                         setPathState(3); // Move to park after 3rd cycle
                     }
                 } else {
-                    if (runCycle(paths.Path5, null, true, 2)) {
+                    if (runCycle(paths.Path5, null, true, 4)) {
                         setPathState(4);
                     }
                 }
@@ -205,14 +206,17 @@ public abstract class MainFarAutonomous extends OpMode {
         cycleState = CycleState.IDLE; // Reset cycle state machine for the new path state
     }
 
-    private boolean runCycle(PathChain toShootPath, @Nullable PathChain toIntakePath, boolean isFarShot, int shotIndex) {
+    private boolean runCycle(PathChain toShootPath, @Nullable PathChain toIntakePath, boolean isFarShot, int configIndex) {
+        return runCycle(toShootPath, toIntakePath, isFarShot, configIndex, 0.8);
+    }
+
+    public boolean runCycle(PathChain toShootPath, @Nullable PathChain toIntakePath, boolean isFarShot, int configIndex, double intakePathSpeed) {
         switch (cycleState) {
             case IDLE:
                 // Start moving to the shooting position and spin up the shooter
                 drive.follower.followPath(toShootPath, 0.8, true);
                 shooter.setTargetRPM(isFarShot ? shooter.getStationaryRPM_Far() : shooter.getStationaryRPM_Close());
                 // Update the telemetry index for debugging
-                this.index = shotIndex;
                 cycleState = CycleState.MOVING_TO_SHOOT;
                 break;
 
@@ -224,7 +228,7 @@ public abstract class MainFarAutonomous extends OpMode {
                     intake.stop();
                 // When the robot arrives, shoot
                 if (!drive.follower.isBusy()) {
-                    autoShoot(shotIndex, isFarShot);
+                    autoShoot(configIndex, isFarShot);
                     cycleState = CycleState.SHOOTING;
                 }
                 break;
@@ -235,7 +239,7 @@ public abstract class MainFarAutonomous extends OpMode {
                     if (toIntakePath != null) {
                         // Start intaking and move to the next intake position
                         autoIntake();
-                        drive.follower.followPath(toIntakePath, 0.8, true);
+                        drive.follower.followPath(toIntakePath, intakePathSpeed, true);
                         cycleState = CycleState.MOVING_TO_INTAKE;
                     } else {
                         cycleState = CycleState.IDLE;
@@ -281,9 +285,9 @@ public abstract class MainFarAutonomous extends OpMode {
         drive.follower.followPath(parkPath, 0.8, true);
     }
 
-    private int index = 0;
     public void autoShoot(int index, boolean farShot) {
         SequenceMapper.Sequence sequence = getShootingSequence(motif, index);
+        shootingSequence = sequence;
         navigator.setSail(farShot ? new CannonSailFar(shooter, intake, sequence) : new CannonSailClose(shooter, intake, sequence));
     }
 
@@ -311,7 +315,7 @@ public abstract class MainFarAutonomous extends OpMode {
 
         switch (index) {
             case 0:
-                blueConfig = SequenceMapper.PositionConfig.GPP; // Preload
+                blueConfig = SequenceMapper.PositionConfig.PPG; // Preload
                 break;
             case 1:
                 blueConfig = SequenceMapper.PositionConfig.GPP;

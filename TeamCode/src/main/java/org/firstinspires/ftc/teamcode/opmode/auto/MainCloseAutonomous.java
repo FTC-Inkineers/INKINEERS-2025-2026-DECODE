@@ -53,6 +53,7 @@ public abstract class MainCloseAutonomous extends OpMode {
         MOVING_TO_INTAKE
     }
     private CycleState cycleState = CycleState.IDLE;
+    private SequenceMapper.Sequence shootingSequence = SequenceMapper.Sequence.MLR;
 
     @Override
     public void init() {
@@ -117,7 +118,7 @@ public abstract class MainCloseAutonomous extends OpMode {
         telemetry.addData("Opmode Time", opmodeTimer.toString());
         telemetry.addData("Path Timer", pathTimer.toString());
         telemetry.addData("Pattern Locked", motif);
-        telemetry.addData("SHOOTING_INDEX", index);
+        telemetry.addData("Shooting Sequence", shootingSequence);
         drive.sendAllTelemetry(telemetry, true);
         shooter.sendAllTelemetry(telemetry, false);
         telemetry.update();
@@ -188,9 +189,9 @@ public abstract class MainCloseAutonomous extends OpMode {
         pathTimer.reset();
     }
 
-    private int index = 0;
     public void autoShoot(int index, boolean farShot) {
         SequenceMapper.Sequence sequence = getShootingSequence(motif, index);
+        shootingSequence = sequence;
         navigator.setSail(farShot ? new CannonSailFar(shooter, intake, sequence) : new CannonSailClose(shooter, intake, sequence));
     }
 
@@ -217,7 +218,7 @@ public abstract class MainCloseAutonomous extends OpMode {
      * Maps a specific field index (0-4) to its physical ball configuration.
      *
      * Layout Definition (Blue Alliance Perspective):
-     * Index 0 (Preload): GPP
+     * Index 0 (Preload): PPG
      * Index 1: GPP
      * Index 2: PGP
      * Index 3: PPG
@@ -229,7 +230,7 @@ public abstract class MainCloseAutonomous extends OpMode {
 
         switch (index) {
             case 0:
-                blueConfig = SequenceMapper.PositionConfig.GPP; // Preload
+                blueConfig = SequenceMapper.PositionConfig.PPG; // Preload
                 break;
             case 1:
                 blueConfig = SequenceMapper.PositionConfig.GPP;

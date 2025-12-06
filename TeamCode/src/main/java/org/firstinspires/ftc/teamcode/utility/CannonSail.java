@@ -116,13 +116,13 @@ UNKNOWN: same as PGP
                 // Store Middle Element
                 shooter.reverseTrigger();
                 // Wait for the shooter to reach its target RPM or timeout
-                if (shooter.isReady() || timer.seconds() > SHOOTER_RAMP_UP_TIMEOUT) {
+                if (timer.seconds() > SHOOTER_RAMP_UP_TIMEOUT) {
                     prepareNextShot();
                     currentState = ShootState.FIRE_1;
                 }
                 break;
             case FIRE_1:
-                // Intake and Shoot Right Element
+                // Intake and Shoot Left Element
                 if (timer.seconds() > 0.8) {
                     intake.stop();
                     shooter.pullTrigger();
@@ -145,7 +145,7 @@ UNKNOWN: same as PGP
                 }
                 break;
             case FIRE_3:
-                // Shoot Left Element
+                // Shoot Right Element
                 shooter.pullTrigger();
                 intake.setIntake(RIGHT, INTAKE);
                 // Done
@@ -163,13 +163,13 @@ UNKNOWN: same as PGP
                 // Store Middle Element
                 shooter.reverseTrigger();
                 // Wait for the shooter to reach its target RPM or timeout
-                if (shooter.isReady() || timer.seconds() > SHOOTER_RAMP_UP_TIMEOUT) {
+                if (timer.seconds() > SHOOTER_RAMP_UP_TIMEOUT) {
                     prepareNextShot();
                     currentState = ShootState.FIRE_1;
                 }
                 break;
             case FIRE_1:
-                // Intake and Shoot Right Element
+                // Intake and Shoot Left Element
                 if (timer.seconds() > 0.8) {
                     intake.stop();
                     shooter.pullTrigger();
@@ -183,7 +183,7 @@ UNKNOWN: same as PGP
                 }
                 break;
             case FIRE_2:
-                // Shoot Left Element
+                // Shoot Right Element
                 if (timer.seconds() > 0.8) {
                     intake.stop();
                     shooter.pullTrigger();
@@ -198,8 +198,9 @@ UNKNOWN: same as PGP
                 }
                 break;
             case FIRE_3:
-                // Shoot Middle Element
-                shooter.pullTrigger();
+                if (timer.seconds() > 0.4)
+                    // Shoot Middle Element
+                    shooter.pullTrigger();
                 // Done
                 if (timer.seconds() > SHOOT_INTERVAL_TIMEOUT) {
                     intake.stop();
@@ -213,7 +214,7 @@ UNKNOWN: same as PGP
         switch (currentState) {
             case RAMP_UP:
                 // Wait for the shooter to reach its target RPM or timeout
-                if (shooter.isReady() || timer.seconds() > SHOOTER_RAMP_UP_TIMEOUT) {
+                if (timer.seconds() > SHOOTER_RAMP_UP_TIMEOUT) {
                     prepareNextShot();
                     currentState = ShootState.FIRE_1;
                 }
@@ -264,7 +265,7 @@ UNKNOWN: same as PGP
         switch (currentState) {
             case RAMP_UP:
                 // Wait for the shooter to reach its target RPM or timeout
-                if (shooter.isReady() || timer.seconds() > SHOOTER_RAMP_UP_TIMEOUT) {
+                if (timer.seconds() > SHOOTER_RAMP_UP_TIMEOUT) {
                     prepareNextShot();
                     currentState = ShootState.FIRE_1;
                 }
@@ -316,7 +317,7 @@ UNKNOWN: same as PGP
                 // Store Middle Element
                 shooter.reverseTrigger();
                 // Wait for the shooter to reach its target RPM or timeout
-                if (shooter.isReady() || timer.seconds() > SHOOTER_RAMP_UP_TIMEOUT) {
+                if (timer.seconds() > SHOOTER_RAMP_UP_TIMEOUT) {
                     prepareNextShot();
                     currentState = ShootState.FIRE_1;
                 }
@@ -351,8 +352,9 @@ UNKNOWN: same as PGP
                 }
                 break;
             case FIRE_3:
-                // Shoot Middle Element
-                shooter.pullTrigger();
+                if (timer.seconds() > 0.4)
+                    // Shoot Middle Element
+                    shooter.pullTrigger();
                 // Done
                 if (timer.seconds() > SHOOT_INTERVAL_TIMEOUT) {
                     intake.stop();
@@ -368,7 +370,7 @@ UNKNOWN: same as PGP
                 // Store Middle Element
                 shooter.reverseTrigger();
                 // Wait for the shooter to reach its target RPM or timeout
-                if (shooter.isReady() || timer.seconds() > SHOOTER_RAMP_UP_TIMEOUT) {
+                if (timer.seconds() > SHOOTER_RAMP_UP_TIMEOUT) {
                     prepareNextShot();
                     currentState = ShootState.FIRE_1;
                 }

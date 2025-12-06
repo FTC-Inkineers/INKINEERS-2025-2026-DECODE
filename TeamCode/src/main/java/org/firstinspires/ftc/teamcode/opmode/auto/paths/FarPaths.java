@@ -49,6 +49,13 @@ public class FarPaths {
     private Pose p6_end = new Pose(12.000, 84.000);
     private double p6_end_h = Math.toRadians(180);
 
+    // Shoot pose to Intake 4
+    private Pose p7_c1 = new Pose(60.000, 8.000);
+    private Pose p7_end = new Pose(3.000, 8.000);
+    private double p7_end_h = Math.toRadians(180);
+
+    // Intake 3 to Shoot pose 4
+
     // Park pose far
     private Pose pFar_end = new Pose(32.000, 36.000);
     private double pFar_end_h = Math.toRadians(180);
@@ -91,6 +98,10 @@ public class FarPaths {
 
             p6_end = reflect(p6_end);
             p6_end_h = reflect(p6_end_h);
+
+            p7_c1 = reflect(p7_c1);
+            p7_end = reflect(p7_end);
+            p7_end_h = reflect(p7_end_h);
 
             pFar_end = reflect(pFar_end);
             pFar_end_h = reflect(pFar_end_h);
@@ -138,16 +149,16 @@ public class FarPaths {
                 .setVelocityConstraint(DEFAULT_VELOCITY_CONSTRAINT)
                 .build();
 
-        // Shoot pose 2 to Intake 2
-        Path4 = follower.pathBuilder()
-                .addPath(new BezierCurve(p1_end, p4_c1, p4_end))
-                .setLinearHeadingInterpolation(p3_end_h, p4_end_h)
-                .setBrakingStrength(DEFAULT_BRAKING_STRENGTH)
-                .setVelocityConstraint(DEFAULT_VELOCITY_CONSTRAINT)
-                .build();
-
         switch (species) {
             case SOLO:
+                // Shoot pose 2 to Intake 2
+                Path4 = follower.pathBuilder()
+                        .addPath(new BezierCurve(p1_end, p4_c1, p4_end))
+                        .setLinearHeadingInterpolation(p3_end_h, p4_end_h)
+                        .setBrakingStrength(DEFAULT_BRAKING_STRENGTH)
+                        .setVelocityConstraint(DEFAULT_VELOCITY_CONSTRAINT)
+                        .build();
+
                 // Intake 2 to Shoot Pose 3
                 Path5 = follower.pathBuilder()
                         .addPath(new BezierCurve(p4_end, p5_c1, p5_end))
@@ -182,11 +193,44 @@ public class FarPaths {
 
                 break;
             case PUSH:
-            case SYMBIOTIC:
+                // Shoot pose 2 to Intake 2
+                Path4 = follower.pathBuilder()
+                        .addPath(new BezierCurve(p1_end, p4_c1, p4_end))
+                        .setLinearHeadingInterpolation(p3_end_h, p4_end_h)
+                        .setBrakingStrength(DEFAULT_BRAKING_STRENGTH)
+                        .setVelocityConstraint(DEFAULT_VELOCITY_CONSTRAINT)
+                        .build();
+
                 // Intake 2 to default Shoot Pose 1
                 Path5 = follower.pathBuilder()
                         .addPath(new BezierLine(p4_end, p1_end))
                         .setLinearHeadingInterpolation(p4_end_h, p1_end_h)
+                        .setBrakingStrength(DEFAULT_BRAKING_STRENGTH)
+                        .setVelocityConstraint(DEFAULT_VELOCITY_CONSTRAINT)
+                        .build();
+
+                // Shoot Pose 3 to PARK
+                Path6 = follower.pathBuilder()
+                        .addPath(new BezierLine(p5_end, pFar_end))
+                        .setLinearHeadingInterpolation(p5_end_h, pFar_end_h)
+                        .setBrakingStrength(DEFAULT_BRAKING_STRENGTH)
+                        .setVelocityConstraint(PARKING_VELOCITY_CONSTRAINT)
+                        .build();
+
+                break;
+            case SYMBIOTIC:
+                // Shoot pose 2 to Intake 2
+                Path4 = follower.pathBuilder()
+                        .addPath(new BezierCurve(p1_end, p7_c1, p7_end))
+                        .setLinearHeadingInterpolation(p3_end_h, p7_end_h)
+                        .setBrakingStrength(DEFAULT_BRAKING_STRENGTH)
+                        .setVelocityConstraint(DEFAULT_VELOCITY_CONSTRAINT)
+                        .build();
+
+                // Intake 2 to default Shoot Pose 1
+                Path5 = follower.pathBuilder()
+                        .addPath(new BezierLine(p7_end, p1_end))
+                        .setLinearHeadingInterpolation(p7_end_h, p1_end_h)
                         .setBrakingStrength(DEFAULT_BRAKING_STRENGTH)
                         .setVelocityConstraint(DEFAULT_VELOCITY_CONSTRAINT)
                         .build();

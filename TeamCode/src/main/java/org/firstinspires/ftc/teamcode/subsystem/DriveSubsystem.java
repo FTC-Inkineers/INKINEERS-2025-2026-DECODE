@@ -230,11 +230,11 @@ public class DriveSubsystem {
             return 0.0;
         }
 
-        boolean farShot = targetTag.getTargetYDegrees() < -0.5;
+        boolean farShot = targetTag.getTargetYDegrees() < 0.5;
 
         // Error is yaw.
         double currentError = targetTag.getTargetXDegrees();
-        lockedOn = Math.abs(currentError) < 3.0;
+        lockedOn = Math.abs(currentError) < (farShot ? 5.0 : 3.0);
         FPIDOutput turnOutput = turnController.calculate(currentError);
         double turnPower = turnOutput.total;
 
