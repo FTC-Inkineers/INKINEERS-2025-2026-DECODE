@@ -41,7 +41,7 @@ public class ShooterSubsystem {
     public static double kF = 0.78 / 3514.0; // Motor Power / RPM | 0.78 / 3514 RPM
     public static double kP = 0.01;
     public static double kI = 0.0;
-    public static double kD = 0.0008;
+    public static double kD = 0.0018;
     public static double SMOOTHING_ALPHA = 0.1; // Try a value between 0.1 and 0.3.
     public static double RPM_TOLERANCE = 110; // Allowable error to be considered "READY"
 
