@@ -226,6 +226,7 @@ public class DriveSubsystem {
     }
 
     // TODO: add feedforward term using distance formula and inverse tangent of position
+    // TODO: add an offset based on left-right position from the goal
     private boolean lockedOn = false;
     private double getGoalTurnCommand() {
         LLResultTypes.FiducialResult targetTag = vision.getTargetTag();
