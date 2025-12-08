@@ -71,19 +71,44 @@ public class SequenceMapper {
     }
 
     /**
-     * Legacy helper if you still need raw indices elsewhere,
-     * but main logic should use getMappedSequenceEnum now.
+     * Calculates the sequence required to transform the Source (robot config)
+     * into the Target (obelisk motif).
      */
-    public int[] getMappingSequence(PositionConfig target, PositionConfig current) {
-        Sequence seq = getMappedSequenceEnum(target, current);
-        switch (seq) {
-            case LMR: return new int[]{1, 2, 3};
-            case LRM: return new int[]{1, 3, 2};
-            case MLR: return new int[]{2, 1, 3};
-            case MRL: return new int[]{2, 3, 1};
-            case RLM: return new int[]{3, 1, 2};
-            case RML: return new int[]{3, 2, 1};
-            default:  return new int[]{1, 2, 3};
+    public Sequence solveSequence(PositionConfig motif, int index, boolean isBlueSide) {
+        // 1. Determine Robot Configuration based on Index and Side
+        PositionConfig current = getConfigForIndex(index, isBlueSide);
+
+        // 2. Map the transformation
+        return getMappedSequenceEnum(motif, current);
+    }
+
+    /**
+     * Maps a specific field index (0-4) to its physical ball configuration.
+     */
+    public PositionConfig getConfigForIndex(int index, boolean isBlueSide) {
+        PositionConfig blueConfig;
+
+        switch (index) {
+            case 0: // Preload
+            case 3:
+                blueConfig = PositionConfig.PPG;
+                break;
+            case 1: // Closest
+                blueConfig = PositionConfig.GPP;
+                break;
+            case 2: // Middle
+            case 4: // Corner
+                blueConfig = PositionConfig.PGP;
+                break;
+            default:
+                blueConfig = PositionConfig.GPP;
+                break;
+        }
+
+        if (isBlueSide) {
+            return blueConfig;
+        } else {
+            return getMirroredConfig(blueConfig);
         }
     }
 

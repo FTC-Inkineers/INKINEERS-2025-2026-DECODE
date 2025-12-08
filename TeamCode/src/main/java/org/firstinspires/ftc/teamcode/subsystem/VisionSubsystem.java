@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.teamcode.utility.SequenceMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -90,6 +91,16 @@ public class VisionSubsystem {
      */
     public LLResultTypes.FiducialResult getTargetTag() {
         return targetTag;
+    }
+
+    public SequenceMapper.PositionConfig getMotifAsConfig() {
+        switch (motif) {
+            case GPP: return SequenceMapper.PositionConfig.GPP;
+            case PPG: return SequenceMapper.PositionConfig.PPG;
+            case PGP: return SequenceMapper.PositionConfig.PGP;
+            // Default to PGP or a safe state if unknown
+            default:  return SequenceMapper.PositionConfig.PGP;
+        }
     }
 
     public void sendTelemetry(Telemetry telemetry, boolean enableAll) {

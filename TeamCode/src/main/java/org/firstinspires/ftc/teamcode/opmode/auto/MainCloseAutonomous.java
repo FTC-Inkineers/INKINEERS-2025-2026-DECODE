@@ -155,8 +155,7 @@ public abstract class MainCloseAutonomous extends OpMode {
                 // Wait for the robot to arrive at the shooting pose
                 if (!drive.follower.isBusy()) {
                     // Shoot once arrived - Index 1
-                    SequenceMapper.Sequence sequence = getShootingSequence(motif, 1);
-                    navigator.setSail(new CannonSailClose(shooter, intake, sequence));
+                    autoShoot(1, false);
                     setPathState(3);
                 }
                 break;
@@ -190,9 +189,8 @@ public abstract class MainCloseAutonomous extends OpMode {
     }
 
     public void autoShoot(int index, boolean farShot) {
-        SequenceMapper.Sequence sequence = getShootingSequence(motif, index);
-        shootingSequence = sequence;
-        navigator.setSail(farShot ? new CannonSailFar(shooter, intake, sequence) : new CannonSailClose(shooter, intake, sequence));
+        shootingSequence = sequenceMapper.solveSequence(vision.getMotifAsConfig(), index, isBlueSide());
+        navigator.setSail(farShot ? new CannonSailFar(shooter, intake, shootingSequence) : new CannonSailClose(shooter, intake, shootingSequence));
     }
 
     public void autoIntake() {
@@ -202,67 +200,4 @@ public abstract class MainCloseAutonomous extends OpMode {
             intake.setIntake(RIGHT, INTAKE);
         }
     }
-
-    protected SequenceMapper.Sequence getShootingSequence(VisionSubsystem.ObeliskMotif motif, int index) {
-        // 1. Determine what the pattern looks like on the wall (Target)
-        SequenceMapper.PositionConfig target = getTargetConfigFromMotif(motif);
-
-        // 2. Determine what the pattern looks like in the robot's intake (Source)
-        SequenceMapper.PositionConfig current = getConfigForIndex(index);
-
-        // 3. Calculate the sequence required to transform Source -> Target
-        return sequenceMapper.getMappedSequenceEnum(target, current);
-    }
-
-    /**
-     * Maps a specific field index (0-4) to its physical ball configuration.
-     *
-     * Layout Definition (Blue Alliance Perspective):
-     * Index 0 (Preload): PPG
-     * Index 1: GPP
-     * Index 2: PGP
-     * Index 3: PPG
-     * Index 4: PGP
-     * (Totals: 2 GPP, 2 PGP, 1 PPG)
-     */
-    protected SequenceMapper.PositionConfig getConfigForIndex(int index) {
-        SequenceMapper.PositionConfig blueConfig;
-
-        switch (index) {
-            case 0:
-                blueConfig = SequenceMapper.PositionConfig.PPG; // Preload
-                break;
-            case 1:
-                blueConfig = SequenceMapper.PositionConfig.GPP;
-                break;
-            case 2:
-                blueConfig = SequenceMapper.PositionConfig.PGP;
-                break;
-            case 3:
-                blueConfig = SequenceMapper.PositionConfig.PPG;
-                break;
-            case 4:
-                blueConfig = SequenceMapper.PositionConfig.PGP;
-                break;
-            default:
-                blueConfig = SequenceMapper.PositionConfig.GPP;
-                break;
-        }
-
-        if (isBlueSide()) {
-            return blueConfig;
-        } else {
-            return SequenceMapper.getMirroredConfig(blueConfig);
-        }
-    }
-
-    protected SequenceMapper.PositionConfig getTargetConfigFromMotif(VisionSubsystem.ObeliskMotif motif) {
-        switch (motif) {
-            case GPP: return SequenceMapper.PositionConfig.GPP;
-            case PPG: return SequenceMapper.PositionConfig.PPG;
-            case PGP: return SequenceMapper.PositionConfig.PGP;
-            default:  return SequenceMapper.PositionConfig.PGP; // Default if vision fails
-        }
-    }
-
 }
