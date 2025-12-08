@@ -17,12 +17,17 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 
 @Config
 public class DriveSubsystem {
+    // Default Blue Goal Coordinates
+    public static Pose GOAL_POSITION = new Pose(0, 144);
+
     // Tunable proportional gains for AprilTag alignment
     public static double kP_drive = 0.01, kD_drive = 0.00;       // Forward/backward
     public static double kP_strafe = 0.01, kD_strafe = 0.00;     // Left/right
     public static double kP_turn = 0.01, kD_turn = 0.00;         // Turn
 
     public static double maxTurnPower = 0.45;
+
+    public static boolean useAprilTagKf = false;
 
     private final FPIDController driveController = new FPIDController.Builder(kP_drive).withD(kD_drive).build();
     private final FPIDController strafeController = new FPIDController.Builder(kP_strafe).withD(kD_strafe).build();
@@ -53,6 +58,7 @@ public class DriveSubsystem {
     private DriveState driveState;
 
     public DriveSubsystem(HardwareMap hardwareMap, VisionSubsystem visionSubsystem, boolean isBlueSide) {
+        GOAL_POSITION = isBlueSide ? GOAL_POSITION : GOAL_POSITION.mirror();
 
         follower = Constants.createFollower(hardwareMap, isBlueSide);
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
@@ -158,7 +164,7 @@ public class DriveSubsystem {
         double rightXInput;
 
         if (withAimAssist && vision.isTargetVisible()) {
-            rightXInput = getAprilTagTurnCommand();
+            rightXInput = getGoalTurnCommand();
         } else {
             rightXInput = turnRamper.rampInput(gamepad1.right_stick_x) * (shooterIsActive ? 0.4 : 0.8);
         }
@@ -219,9 +225,9 @@ public class DriveSubsystem {
         }
     }
 
-    // TODO: use tag Y angle to add an offset
+    // TODO: add feedforward term using distance formula and inverse tangent of position
     private boolean lockedOn = false;
-    private double getAprilTagTurnCommand() {
+    private double getGoalTurnCommand() {
         LLResultTypes.FiducialResult targetTag = vision.getTargetTag();
 
         if (targetTag == null) {
