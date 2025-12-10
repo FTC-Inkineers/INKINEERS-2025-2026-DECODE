@@ -23,8 +23,8 @@ public class DriveSubsystem {
     // Tunable proportional gains for AprilTag alignment
     public static double kP_drive = 0.01, kD_drive = 0.00;       // Forward/backward
     public static double kP_strafe = 0.01, kD_strafe = 0.00;     // Left/right
-    public static double kP_turn = 0.01, kD_turn = 0.00;         // Turn
-
+    public static double kP_turn = 0.01, kD_turn = 0.00;   // Turn, kF using coordinates
+    public static double kP_odo = 0.01, kD_odo = 0.0; // Odometry Turn Gains
     public static double maxTurnPower = 0.45;
 
     public static boolean useAprilTagKf = false;
@@ -32,6 +32,7 @@ public class DriveSubsystem {
     private final FPIDController driveController = new FPIDController.Builder(kP_drive).withD(kD_drive).build();
     private final FPIDController strafeController = new FPIDController.Builder(kP_strafe).withD(kD_strafe).build();
     private final FPIDController turnController = new FPIDController.Builder(kP_turn).withD(kD_turn).build();
+    private final FPIDController odoTurnController = new FPIDController.Builder(kP_odo).withD(kD_odo).build();
     
     // PEDRO PATHING
     public final Follower follower;
@@ -102,6 +103,7 @@ public class DriveSubsystem {
         driveController.setGains(0, kP_drive, 0, kD_drive);
         strafeController.setGains(0, kP_strafe, 0, kD_strafe);
         turnController.setGains(0, kP_turn, 0, kD_turn);
+        odoTurnController.setGains(0, kP_odo, 0, kD_odo);
     }
 
     public void runTeleOp() {
@@ -225,35 +227,85 @@ public class DriveSubsystem {
         }
     }
 
-    // TODO: add feedforward term using distance formula and inverse tangent of position
     // TODO: add an offset based on left-right position from the goal
+    /* Tuning Strategy
+    1. Set kP_turn (Vision) to 0.
+    2. Set kP_odo_turn to a small value (e.g., 0.01 or 0.02).
+    3. Drive around. The robot should roughly point at the bucket/goal purely based on math. It won't be perfect because odometry drifts.
+    4. Set kP_turn back to your original value (0.01).
+    5. Now, the Odometry does the heavy lifting (getting you 90% there instantly), and the Vision just bumps it into the perfect center.
+     */
     private boolean lockedOn = false;
     private double getGoalTurnCommand() {
+        // 1. Calculate Feedforward (Odometry)
+        // This acts as the "base" speed. If vision fails, this keeps us roughly pointed at the goal.
+        double feedforward = calculateFeedforward();
+
+        // 2. Calculate Feedback (Vision)
+        double visionOutput = 0.0;
+        double currentError = 0.0;
+
         LLResultTypes.FiducialResult targetTag = vision.getTargetTag();
 
-        if (targetTag == null) {
-            telemetryM.debug("Lock On", "No tags detected");
-            turnController.reset();
-            return 0.0;
+        if (targetTag != null) {
+            boolean farShot = targetTag.getTargetYDegrees() < 0.5;
+            currentError = targetTag.getTargetXDegrees();
+
+            // Check lock status
+            lockedOn = Math.abs(currentError) < (farShot ? 5.0 : 3.0);
+
+            // Run PID on the vision error
+            FPIDOutput turnOutput = turnController.calculate(currentError);
+            visionOutput = turnOutput.total;
+
+            telemetryM.debug("LockOnPID", "P: %.2f, I: %.2f, D: %.2f", turnOutput.p, turnOutput.i, turnOutput.d);
+        } else {
+            telemetryM.debug("Lock On", "No tags - Using Odo FF");
+            turnController.reset(); // Reset Integral if we lose visual
         }
 
-        boolean farShot = targetTag.getTargetYDegrees() < 0.5;
+        // 3. Combine Feedforward + Feedback
+        double totalTurn = visionOutput + feedforward;
 
-        // Error is yaw.
-        double currentError = targetTag.getTargetXDegrees();
-        lockedOn = Math.abs(currentError) < (farShot ? 5.0 : 3.0);
-        FPIDOutput turnOutput = turnController.calculate(currentError);
-        double turnPower = turnOutput.total;
+        // 4. Clamp speed
+        totalTurn = Math.max(-maxTurnPower, Math.min(maxTurnPower, totalTurn));
 
-        // Clamp speed
-        turnPower = Math.max(-maxTurnPower, Math.min(maxTurnPower, turnPower));
+        telemetryM.debug("LockOn", "VisErr: %.2f, FF: %.2f, Total: %.2f", currentError, feedforward, totalTurn);
 
-        telemetryM.debug("LockOn", "yawErr: %.2f", currentError);
-        telemetryM.debug("LockOnPID", "P: %.2f, I: %.2f, D: %.2f, Total: %.2f",
-                turnOutput.p, turnOutput.i, turnOutput.d, turnPower);
-
-        return turnPower;
+        return totalTurn;
     }
+
+    private double calculateFeedforward() {
+        Pose currentPose = follower.getPose();
+
+        // 1. Calculate vector to goal
+        double dx = GOAL_POSITION.getX() - currentPose.getX();
+        double dy = GOAL_POSITION.getY() - currentPose.getY();
+
+        // 2. Calculate absolute field target angle (in radians)
+        double targetHeadingRad = Math.atan2(dy, dx);
+
+        // 3. Calculate error (Target - Current)
+        double angleDifferenceRad = targetHeadingRad - currentPose.getHeading();
+
+        // 4. Angle Wrap: Ensure the robot takes the shortest path (-PI to PI)
+        while (angleDifferenceRad > Math.PI) angleDifferenceRad -= 2 * Math.PI;
+        while (angleDifferenceRad < -Math.PI) angleDifferenceRad += 2 * Math.PI;
+
+        // 5. Convert to degrees
+        double angleDifferenceDeg = Math.toDegrees(angleDifferenceRad);
+
+        // 6. Use the FPIDController
+        // Note: We use .calculate(error) which treats it as a standard PID loop
+        // regarding the Odometry error.
+        FPIDOutput odoOutput = odoTurnController.calculate(angleDifferenceDeg);
+
+        // Optional: Telemetry for debugging the Odo Loop specifically
+        // telemetryM.debug("OdoPID", "Err: %.2f, Out: %.2f", angleDifferenceDeg, odoOutput.total);
+
+        return odoOutput.total;
+    }
+
 
     private void holdPosition() {
         if (holdPositionTarget == null) return;
